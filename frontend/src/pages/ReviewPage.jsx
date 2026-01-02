@@ -40,7 +40,8 @@ const ReviewPage = () => {
         <div className="header-title">Adaptive Quiz Platform</div>
       </div>
 
-      <div className="review-shell">
+      <div className="main-content">
+        <div className="review-shell">
         <div className="review-actions">
           <button className="link-btn" onClick={() => navigate('/result')}>
             ⬅ Quay lại bảng điểm

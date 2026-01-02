@@ -112,7 +112,7 @@ body {
   width: 100%;
   padding: 20px 24px;
   background: white;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .start-screen {
@@ -257,125 +257,7 @@ body {
   }
 }
 
-.result-screen {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  text-align: center;
-}
-
-@media (max-width: 768px) {
-  .result-screen {
-    padding: 40px 20px;
-  }
-
-  .result-icon {
-    font-size: 80px;
-    margin-bottom: 20px;
-  }
-
-  .result-title {
-    font-size: 24px;
-  }
-
-  .result-level {
-    font-size: 36px;
-  }
-
-  .result-score {
-    font-size: 20px;
-    margin-bottom: 30px;
-  }
-}
-
-@media (max-width: 480px) {
-  .result-screen {
-    padding: 30px 15px;
-  }
-
-  .result-icon {
-    font-size: 60px;
-    margin-bottom: 15px;
-  }
-
-  .result-title {
-    font-size: 20px;
-  }
-
-  .result-level {
-    font-size: 28px;
-  }
-
-  .result-score {
-    font-size: 18px;
-    margin-bottom: 20px;
-  }
-
-  .restart-btn {
-    padding: 12px 28px;
-    font-size: 14px;
-  }
-}
-
-.result-icon {
-  font-size: 120px;
-  margin-bottom: 30px;
-  animation: scaleIn 0.5s ease;
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0);
-  }
-
-  to {
-    transform: scale(1);
-  }
-}
-
-.result-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #2d3748;
-  margin-bottom: 20px;
-}
-
-.result-level {
-  font-size: 48px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 16px;
-}
-
-.result-score {
-  font-size: 24px;
-  color: #4a5568;
-  margin-bottom: 40px;
-}
-
-.restart-btn {
-  padding: 16px 40px;
-  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
-}
-
-.restart-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(79, 195, 247, 0.5);
-}
+/* Result page CSS moved to ResultPage.css */
 
 .correct-border {
   border-left: 8px solid #28a745 !important;
