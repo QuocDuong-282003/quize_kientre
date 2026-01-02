@@ -22,7 +22,7 @@ const QuizSidebar = ({ progress, onSubmit, onFinishFinal, quizFinished, timer, l
                     disabled={loading || quizFinished}
                     className={`submit-btn ${loading || quizFinished ? 'loading' : ''}`}
                 >
-                    {quizFinished ? 'Đã hoàn thành' : (loading ? ' Đang xử lý...' : '✓ Câu tiếp theo')}
+                    {quizFinished ? 'Đã hoàn thành' : (loading ? ' Đang xử lý...' : ' Câu tiếp theo')}
                 </button>
 
                 {quizFinished && (

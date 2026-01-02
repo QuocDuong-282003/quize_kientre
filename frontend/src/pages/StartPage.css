@@ -347,8 +347,7 @@
 }
 
 .exam-cover {
-    background: linear-gradient(135deg, #0b84ff, #29b6f6);
-    padding: 16px;
+    background: linear-gradient(135deg, #0b84ff, #56a6c8);
     text-align: center;
 }
 
@@ -363,12 +362,14 @@
     font-weight: 800;
     margin: 8px 0 4px;
     line-height: 1.3;
+    color: white;
 }
 
 .exam-year {
     font-size: 13px;
     opacity: 0.85;
     font-weight: 600;
+    color: white;
 }
 
 

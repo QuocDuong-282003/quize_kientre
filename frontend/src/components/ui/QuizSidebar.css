@@ -61,17 +61,17 @@
 
 .submit-btn {
   width: 100%;
-  padding: 18px;
+  padding: 14px;
   background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   transition: none;
   transform: none;
-  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+  box-shadow: none;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -103,9 +103,13 @@
   cursor: not-allowed;
 }
 
-.submit-btn:hover:not(:disabled) {
+.submit-btn:hover:not(:disabled),
+.submit-btn:active:not(:disabled),
+.submit-btn:focus-visible {
+  background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
   transform: none;
-  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+  box-shadow: none;
+  outline: none;
 }
 
 .submit-btn:disabled {
