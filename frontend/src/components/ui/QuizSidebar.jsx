@@ -24,7 +24,7 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
                     className="finish-btn"
                     title="Nộp bài ngay với các câu đã làm"
                 >
-                    ⚑ Nộp bài sớm
+                    Nộp bài sớm
                 </button>
             </div>
 
@@ -62,11 +62,9 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
 
             <div className="info-section">
                 <div className="info-item">
-                    {/* <span className="info-icon">💡</span> */}
                     <span className="info-text">Độ khó tự động điều chỉnh</span>
                 </div>
                 <div className="info-item">
-                    {/* <span className="info-icon">🎯</span> */}
                     <span className="info-text">10 câu hỏi</span>
                 </div>
             </div>

@@ -73,7 +73,6 @@ const ResultPage = () => {
       </div>
       <div className="main-content">
         <div className="result-screen">
-          <div className="result-icon">🎉</div>
           <h1 className="result-title">Hoàn thành xuất sắc!</h1>
           <div className="result-level">{result.level}</div>
           <p className="result-score">Điểm số: {result.score}/100</p>
