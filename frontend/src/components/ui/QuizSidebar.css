@@ -69,7 +69,8 @@
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  /*transition: all 0.3s ease;*/
+  transition: none;
+  transform: none;
   box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -102,10 +103,10 @@
   cursor: not-allowed;
 }
 
-/* .submit-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(79, 195, 247, 0.5);
-} */
+.submit-btn:hover:not(:disabled) {
+  transform: none;
+  box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+}
 
 .submit-btn:disabled {
   opacity: 0.6;

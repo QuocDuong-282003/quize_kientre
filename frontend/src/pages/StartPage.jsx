@@ -7,7 +7,7 @@ import './StartPage.css';
 
 const StartPage = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loadingExamId, setLoadingExamId] = useState(null);
   const [exams, setExams] = useState([]);
   const [examsLoading, setExamsLoading] = useState(true);
   const [examError, setExamError] = useState('');
@@ -41,12 +41,14 @@ const StartPage = () => {
   }, [fetchExams]);
 
   const handleStartExam = async (exam) => {
+    if (loadingExamId && loadingExamId !== exam._id) return; // tránh song song nhiều yêu cầu
+
     if (!user) {
       setGuestWarning(true);
       setTimeout(() => setGuestWarning(false), 3000);
     }
 
-    setLoading(true);
+    setLoadingExamId(exam._id);
     try {
       const data = await quizService.startQuiz(user?.userId || null, exam._id);
       navigate('/quiz', {
@@ -61,7 +63,7 @@ const StartPage = () => {
     } catch (error) {
       alert('Không thể kết nối đến server. Vui lòng thử lại!');
       console.error(error);
-      setLoading(false);
+      setLoadingExamId(null);
     }
   };
 
@@ -152,8 +154,12 @@ const StartPage = () => {
                       ))}
                     </div>
 
-                    <button className="exam-btn-start" type="button" disabled={loading}>
-                      {loading ? 'Đang tải...' : 'Vào ôn thi'}
+                    <button
+                      className="exam-btn-start"
+                      type="button"
+                      disabled={loadingExamId === exam._id}
+                    >
+                      {loadingExamId === exam._id ? 'Đang tải...' : 'Vào ôn thi'}
                     </button>
                   </div>
                 </div>
