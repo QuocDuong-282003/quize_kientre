@@ -17,6 +17,8 @@ const QuizPage = () => {
   const [timer, setTimer] = useState("00:00");
   const [loading, setLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const [pendingResult, setPendingResult] = useState(null);
   const [warningCount, setWarningCount] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
@@ -154,7 +156,10 @@ const QuizPage = () => {
       );
 
       if (data.isFinished) {
-        navigate('/result', { state: { result: data } });
+        setQuizFinished(true);
+        setPendingResult(data);
+        setProgress(10);
+        setSelectedIds([]);
       } else {
         setQuestion(data.nextQuestion);
         setProgress(data.progress);
@@ -197,6 +202,14 @@ const QuizPage = () => {
     }
   };
 
+  const handleFinishFinal = async () => {
+    if (!quizFinished || !pendingResult) return;
+    const confirmFinish = window.confirm('Bạn đã hoàn thành 10 câu. Nộp bài ngay?');
+    if (!confirmFinish) return;
+
+    navigate('/result', { state: { result: pendingResult } });
+  };
+
   if (!question) return <div>Đang tải...</div>;
 
   return (
@@ -228,13 +241,15 @@ const QuizPage = () => {
           progress={progress}
           selectedIds={selectedIds}
           onSelect={setSelectedIds}
-          loading={loading || isSubmitting}
+          loading={loading || isSubmitting || quizFinished}
         />
         <QuizSidebar
           progress={progress}
           timer={timer}
           onSubmit={handleNext}
           onFinishEarly={handleFinishEarly}
+          onFinishFinal={handleFinishFinal}
+          quizFinished={quizFinished}
           loading={loading || isSubmitting}
         />
       </div>

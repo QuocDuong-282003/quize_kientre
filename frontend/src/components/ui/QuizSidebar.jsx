@@ -8,22 +8,33 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
                 <div className="timer-label"> Thời gian</div>
                 <div className="timer-value">{timer}</div>
             </div>
-
-            <div className="sidebar-actions">
                 <button
                     onClick={onSubmit}
-                    disabled={loading}
-                    className={`submit-btn ${loading ? 'loading' : ''}`}
+                    disabled={loading || quizFinished}
+                    className={`submit-btn ${loading || quizFinished ? 'loading' : ''}`}
                 >
-                    {loading ? ' Đang xử lý...' : '✓ Câu tiếp theo'}
+                    {quizFinished ? 'Đã hoàn thành' : (loading ? ' Đang xử lý...' : '✓ Câu tiếp theo')}
                 </button>
 
-                {/* <button
-                    onClick={onFinishEarly}
-                    disabled={loading}
-                    className="finish-btn"
-                    title="Nộp bài ngay với các câu đã làm"
-                >
+                {quizFinished ? (
+                    <button
+                        onClick={onFinishFinal}
+                        disabled={loading}
+                        className="finish-btn final"
+                        title="Nộp bài sau khi đã hoàn thành 10 câu"
+                    >
+                        ✓ Nộp bài
+                    </button>
+                ) : (
+                    <button
+                        onClick={onFinishEarly}
+                        disabled={loading}
+                        className="finish-btn"
+                        title="Nộp bài ngay với các câu đã làm"
+                    >
+                        ⚑ Nộp bài sớm
+                    </button>
+                )}
                     Nộp bài sớm
                 </button> */}
             </div>
