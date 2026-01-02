@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import quizService from '../services/quiz';
 import '../App.css';
 import './QuizPage.css';
+import './ResultPage.css';
 
 const computeResultFallback = (payload) => {
   if (!payload) return null;
@@ -84,7 +85,7 @@ const ResultPage = () => {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container result-page">
       {location.state?.warning && (
         <div className="result-warning">
           {/* <div className="result-warning-icon">🚨</div> */}
@@ -95,33 +96,34 @@ const ResultPage = () => {
       <div className="header">
         <div className="header-title">Adaptive Quiz Platform</div>
       </div>
-      <div className="main-content">
+      <div className="main-content result-content">
         <div className="result-screen">
-          <h1 className="result-title">Hoàn thành xuất sắc!</h1>
-          <div className="result-level">{result.level}</div>
-          <p className="result-score">Điểm số: {result.score}/100</p>
-          {(result.reason === 'finish_early' || result.reason === 'tab_switch' || result.reason === 'mouse_leave_violation') && (
-            <div className="result-note">Điểm được tính theo các câu đã làm trước khi bài bị nộp.</div>
-          )}
-          {reviewError && <div className="result-note" style={{ color: '#b00020' }}>{reviewError}</div>}
-          {loadingReview && <div className="result-note">Đang tải chi tiết bài làm...</div>}
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
-            <button
-              className="review-btn"
-              onClick={() => navigate('/review', { state: { reviewData: result.reviewData || result.history || [], sessionId: result.sessionId } })}
-              style={{ background: '#17a2b8', color: '#fff', padding: '16px 40px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Xem chi tiết đáp án
-            </button>
-            <button
-              className="restart-btn"
-              onClick={() => {
-                localStorage.removeItem('lastResult');
-                navigate('/');
-              }}
-            >
-              Làm bài kiểm tra mới
-            </button>
+          <div className="result-card">
+            <h1 className="result-title">Hoàn thành xuất sắc!</h1>
+            <div className="result-level">{result.level}</div>
+            <p className="result-score">Điểm số: {result.score}/100</p>
+            {(result.reason === 'finish_early' || result.reason === 'tab_switch' || result.reason === 'mouse_leave_violation') && (
+              <div className="result-note">Điểm được tính theo các câu đã làm trước khi bài bị nộp.</div>
+            )}
+            {reviewError && <div className="result-note" style={{ color: '#b00020' }}>{reviewError}</div>}
+            {loadingReview && <div className="result-note">Đang tải chi tiết bài làm...</div>}
+            <div className="result-actions">
+              <button
+                className="review-btn"
+                onClick={() => navigate('/review', { state: { reviewData: result.reviewData || result.history || [], sessionId: result.sessionId } })}
+              >
+                Xem chi tiết đáp án
+              </button>
+              <button
+                className="restart-btn"
+                onClick={() => {
+                  localStorage.removeItem('lastResult');
+                  navigate('/');
+                }}
+              >
+                Làm bài kiểm tra mới
+              </button>
+            </div>
           </div>
         </div>
       </div>
