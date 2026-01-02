@@ -21,6 +21,7 @@ export default function AdminPage() {
     const [error, setError] = useState('');
     const [examError, setExamError] = useState('');
     const [examForm, setExamForm] = useState({ title: '', code: '', description: '', category: '' });
+    const [showExamModal, setShowExamModal] = useState(false);
 
     // Fetch all questions
     useEffect(() => {
@@ -179,6 +180,7 @@ export default function AdminPage() {
             await adminService.createExam(examForm);
             setExamForm({ title: '', code: '', description: '', category: '' });
             loadExams();
+            setShowExamModal(false);
         } catch (err) {
             setExamError('Lỗi tạo khóa thi: ' + (err.response?.data?.error || err.message));
         } finally {
@@ -190,13 +192,69 @@ export default function AdminPage() {
         <div className="admin-container">
             <div className="admin-header">
                 <h1> Quản Lý Câu Hỏi Quiz</h1>
-                <button
-                    className="btn-add-question"
-                    onClick={() => setShowForm(!showForm)}
-                >
-                    {showForm ? ' Hủy' : ' Thêm Câu Hỏi'}
-                </button>
+                <div className="admin-header-actions">
+                    <button
+                        className="btn-add-exam"
+                        onClick={() => setShowExamModal(true)}
+                    >
+                        Thêm Khóa Thi
+                    </button>
+                    <button
+                        className="btn-add-question"
+                        onClick={() => setShowForm(!showForm)}
+                    >
+                        {showForm ? ' Hủy' : ' Thêm Câu Hỏi'}
+                    </button>
+                </div>
             </div>
+
+            {showExamModal && (
+                <div className="modal-overlay" onClick={() => setShowExamModal(false)}>
+                    <div className="modal exam-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h2>Thêm Khóa Thi</h2>
+                            <button className="modal-close" onClick={() => setShowExamModal(false)}>×</button>
+                        </div>
+                        {examError && <div className="inline-error">{examError}</div>}
+                        <div className="modal-body">
+                            <div className="modal-grid">
+                                <input
+                                    type="text"
+                                    placeholder="Tiêu đề (ví dụ: Lập trình C)"
+                                    value={examForm.title}
+                                    onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Mã (ví dụ: C-BASIC)"
+                                    value={examForm.code}
+                                    onChange={(e) => setExamForm({ ...examForm, code: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Danh mục (tùy chọn)"
+                                    value={examForm.category}
+                                    onChange={(e) => setExamForm({ ...examForm, category: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Mô tả ngắn"
+                                    value={examForm.description}
+                                    onChange={(e) => setExamForm({ ...examForm, description: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancel" type="button" onClick={() => setShowExamModal(false)}>
+                                Đóng
+                            </button>
+                            <button className="btn-submit" type="button" onClick={handleCreateExam} disabled={examLoading}>
+                                {examLoading ? 'Đang lưu...' : 'Tạo khóa thi'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {error && <div className="error-message">{error}</div>}
 
@@ -386,39 +444,6 @@ export default function AdminPage() {
                 )}
             </div>
 
-            {/* Quick exam creator */}
-            <div className="exam-form-container">
-                <h2>Tạo khóa thi nhanh</h2>
-                <div className="exam-form-grid">
-                    <input
-                        type="text"
-                        placeholder="Tiêu đề (ví dụ: Lập trình C)"
-                        value={examForm.title}
-                        onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Mã (ví dụ: C-BASIC)"
-                        value={examForm.code}
-                        onChange={(e) => setExamForm({ ...examForm, code: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Danh mục (tùy chọn)"
-                        value={examForm.category}
-                        onChange={(e) => setExamForm({ ...examForm, category: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Mô tả ngắn"
-                        value={examForm.description}
-                        onChange={(e) => setExamForm({ ...examForm, description: e.target.value })}
-                    />
-                    <button type="button" className="btn-submit" onClick={handleCreateExam} disabled={examLoading}>
-                        {examLoading ? 'Đang lưu...' : 'Tạo khóa thi'}
-                    </button>
-                </div>
-            </div>
         </div>
     );
 }
