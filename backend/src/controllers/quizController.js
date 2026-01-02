@@ -128,17 +128,15 @@ exports.startQuiz = async (req, res) => {
 
 exports.submitAnswer = async (req, res) => {
     try {
-        const { sessionId, questionId, selectedAnswerIds, reason, finishEarly } = req.body;
+        const { sessionId, questionId, selectedAnswerIds = [], reason, finishEarly } = req.body;
         console.log('Submit Answer - sessionId:', sessionId, 'questionId:', questionId, 'reason:', reason);
 
         const session = await QuizSession.findById(sessionId);
-        const question = await Question.findById(questionId);
 
-        if (!session || !question) {
-            return res.status(400).json({ error: 'Session or Question not found' });
+        if (!session) {
+            return res.status(400).json({ error: 'Session not found' });
         }
 
-        // ANTI-CHEAT #1: Kiểm tra session đã kết thúc chưa
         if (session.isFinished) {
             return res.status(400).json({
                 error: 'Quiz already finished',
@@ -146,9 +144,34 @@ exports.submitAnswer = async (req, res) => {
             });
         }
 
-        // ANTI-CHEAT #2: Kiểm tra đúng câu hỏi hiện tại
+        // Cho phép nộp bài ngay mà không cần trả lời câu hiện tại
+        if (finishEarly && selectedAnswerIds.length === 0) {
+            const result = adaptiveService.calculateResult(session.history);
+            session.isFinished = true;
+            session.finalScore = result.score;
+            session.estimatedLevel = result.level;
+            await session.save();
+
+            const fullSession = await QuizSession.findById(session._id).populate('history.questionId');
+
+            return res.json({
+                isFinished: true,
+                score: result.score,
+                level: result.level,
+                reviewData: fullSession.history,
+                reason: 'finish_early'
+            });
+        }
+
+        const question = await Question.findById(questionId);
+
+        if (!question) {
+            return res.status(400).json({ error: 'Question not found' });
+        }
+
+        // Kiểm tra đúng câu hỏi hiện tại
         if (session.currentQuestionId.toString() !== questionId) {
-            console.warn('🚨 Anti-cheat: Invalid question submission');
+            console.warn(' Anti-cheat: Invalid question submission');
             console.warn('Expected:', session.currentQuestionId.toString());
             console.warn('Received:', questionId);
             return res.status(400).json({
@@ -157,7 +180,7 @@ exports.submitAnswer = async (req, res) => {
             });
         }
 
-        // ANTI-CHEAT #3: Kiểm tra submit duplicate
+        // Kiểm tra submit duplicate
         const alreadyAnswered = session.history.some(h => h.questionId.toString() === questionId);
         if (alreadyAnswered) {
             return res.status(400).json({
@@ -166,10 +189,9 @@ exports.submitAnswer = async (req, res) => {
             });
         }
 
-        // ANTI-CHEAT #4: Log tab switch
+        //  Log tab switch
         if (reason === 'tab_switch') {
-            console.warn('🚨 User switched tab - sessionId:', sessionId);
-            // Có thể lưu flag vào session để đánh dấu
+            console.warn(' User switched tab - sessionId:', sessionId);
             session.hasTabSwitch = true;
         }
 
@@ -195,7 +217,6 @@ exports.submitAnswer = async (req, res) => {
             session.estimatedLevel = result.level;
             await session.save();
 
-            // QUAN TRỌNG: Sử dụng .populate để lấy chi tiết text câu hỏi và đáp án đúng
             const fullSession = await QuizSession.findById(session._id).populate('history.questionId');
 
             console.log('Quiz finished - fullSession history:', JSON.stringify(fullSession.history, null, 2));
@@ -204,7 +225,7 @@ exports.submitAnswer = async (req, res) => {
                 isFinished: true,
                 score: result.score,
                 level: result.level,
-                reviewData: fullSession.history, // Đây chính là dữ liệu để FE xem lại
+                reviewData: fullSession.history,
                 reason: finishEarly ? 'finish_early' : (isEarlyExit ? 'early_exit' : 'completed')
             });
         }
@@ -223,7 +244,6 @@ exports.submitAnswer = async (req, res) => {
     }
 };
 
-// 2. API Xem lại kết quả (Dùng khi muốn xem lại bài cũ bằng Session ID)
 exports.getReview = async (req, res) => {
     try {
         const { sessionId } = req.params;
