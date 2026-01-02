@@ -36,6 +36,11 @@ export const quizService = {
     getExams: async () => {
         const response = await API.get('/api/admin/exams');
         return response.data;
+    },
+
+    goBack: async (sessionId) => {
+        const response = await API.post('/api/quiz/back', { sessionId });
+        return response.data;
     }
 };
 

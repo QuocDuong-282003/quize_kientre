@@ -83,7 +83,7 @@ const StartPage = () => {
           {user ? (
             <>
               <div className="user-info-container">
-                <span className="user-icon">👤</span>
+
                 <span className="user-email">{user.email}</span>
               </div>
               <button onClick={handleLogout} className="logout-button">
@@ -119,7 +119,7 @@ const StartPage = () => {
               </div>
               <div className="exam-empty-actions-center">
                 <button type="button" className="exam-btn-reload" onClick={fetchExams} disabled={examsLoading}>
-                  {examsLoading ? 'Đang tải...' : 'Tải lại' }
+                  {examsLoading ? 'Đang tải...' : 'Tải lại'}
                 </button>
               </div>
               {examError && <p className="exam-error">{examError}</p>}
@@ -129,29 +129,23 @@ const StartPage = () => {
               {exams.map((exam) => (
                 <div key={exam._id} className="exam-card" onClick={() => handleStartExam(exam)} style={{ cursor: 'pointer' }}>
                   <div className="exam-cover" aria-hidden>
-                    <div className="exam-icon">{exam.coverImage || '📝'}</div>
+                    <div className="exam-icon">{exam.coverImage || ''}</div>
                     <div className="exam-title-large">{exam.title}</div>
                     <div className="exam-year">{new Date(exam.examDate).getFullYear()}</div>
                   </div>
                   <div className="exam-body">
                     <p className="exam-description">{exam.description || 'Bộ đề đánh giá nhanh với câu hỏi phân tầng độ khó.'}</p>
-                    
+
                     <div className="exam-stats">
                       <div className="stat-item">
-                        <span className="stat-icon">❓</span>
+                        <span className="stat-icon">?</span>
                         <span className="stat-value">{exam.questionCount || 10}</span>
                       </div>
                       <div className="stat-item">
-                        <span className="stat-icon">⏱️</span>
+                        <span className="stat-icon">⏱</span>
                         <span className="stat-value">{exam.duration || 30} phút</span>
                       </div>
                     </div>
-
-                    <div className="exam-meta-info">
-                      <span className="level-badge">{exam.level || 'Intermediate'}</span>
-                      <span className="passing-badge">Đạt: {exam.passingScore || 55}%</span>
-                    </div>
-
                     <div className="exam-tags">
                       {exam.tags && exam.tags.slice(0, 3).map((tag, idx) => (
                         <span key={idx} className="tag">{tag}</span>

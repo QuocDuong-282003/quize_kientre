@@ -1,7 +1,7 @@
 import React from 'react';
 import './QuizSidebar.css';
 
-const QuizSidebar = ({ progress, onSubmit, onFinishFinal, quizFinished, timer, loading }) => {
+const QuizSidebar = ({ progress, onSubmit, onFinishFinal, quizFinished, timer, loading, onBack }) => {
     return (
         <div className="quiz-sidebar">
             <div className="timer-section">
@@ -10,6 +10,13 @@ const QuizSidebar = ({ progress, onSubmit, onFinishFinal, quizFinished, timer, l
             </div>
 
             <div className="sidebar-actions">
+                <button
+                    onClick={onBack}
+                    disabled={loading || progress === 0}
+                    className="back-btn"
+                >
+                    ← Câu trước
+                </button>
                 <button
                     onClick={onSubmit}
                     disabled={loading || quizFinished}

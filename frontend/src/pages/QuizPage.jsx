@@ -181,6 +181,24 @@ const QuizPage = () => {
     navigate('/result', { state: { result: pendingResult } });
   };
 
+  const handleBack = async () => {
+    if (progress === 0) return;
+    setLoading(true);
+    try {
+      const data = await quizService.goBack(sessionId);
+      setQuestion(data.question);
+      setSelectedIds(data.selectedAnswerIds || []);
+      setProgress(data.progress || 0);
+      setQuizFinished(false);
+      setPendingResult(null);
+    } catch (error) {
+      alert('Không thể quay lại câu trước.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!question) return <div>Đang tải...</div>;
 
   return (
@@ -218,6 +236,7 @@ const QuizPage = () => {
           progress={progress}
           timer={timer}
           onSubmit={handleNext}
+          onBack={handleBack}
           onFinishFinal={handleFinishFinal}
           quizFinished={quizFinished}
           loading={loading || isSubmitting}
