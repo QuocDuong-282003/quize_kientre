@@ -1,8 +1,66 @@
 const mongoose = require('mongoose');
 const Question = require('./models/Question');
+const Exam = require('./models/Exam');
 const connectDB = require('./config/db');
 
-const mockData = [
+// Exam catalog (4 cards)
+const examSeeds = [
+    {
+        title: 'Kiểm tra kiến thức cơ bản lập trình',
+        code: 'BASIC-PROGRAMMING',
+        description: 'Kiến thức nền tảng: HTML, CSS, JS, SQL cơ bản',
+        category: 'Lập trình',
+        tags: ['JS', 'HTML', 'CSS', 'SQL'],
+        coverImage: '💻',
+        examDate: new Date('2025-12-31'),
+        duration: 30,
+        passingScore: 55,
+        level: 'Beginner',
+        questionCount: 55
+    },
+    {
+        title: 'Hướng đối tượng (OOP)',
+        code: 'OOP-ADVANCED',
+        description: 'OOP, SOLID, Design Patterns, kế thừa, đa hình, đóng gói',
+        category: 'Lập trình nâng cao',
+        tags: ['OOP', 'Design Patterns', 'SOLID'],
+        coverImage: '🏗️',
+        examDate: new Date('2025-12-31'),
+        duration: 35,
+        passingScore: 60,
+        level: 'Intermediate',
+        questionCount: 11
+    },
+    {
+        title: 'MySQL & Cơ sở dữ liệu',
+        code: 'MYSQL-DATABASE',
+        description: 'Thiết kế DB, MySQL queries, indexing, optimization, transactions',
+        category: 'Cơ sở dữ liệu',
+        tags: ['MySQL', 'SQL', 'Database', 'Performance'],
+        coverImage: '🗄️',
+        examDate: new Date('2025-12-31'),
+        duration: 30,
+        passingScore: 55,
+        level: 'Intermediate',
+        questionCount: 12
+    },
+    {
+        title: 'REST API & Backend',
+        code: 'REST-API-BACKEND',
+        description: 'Node.js, Express, REST design, auth, middleware, error handling',
+        category: 'Backend',
+        tags: ['REST API', 'Node.js', 'Express', 'Backend'],
+        coverImage: '⚙️',
+        examDate: new Date('2025-12-31'),
+        duration: 35,
+        passingScore: 60,
+        level: 'Intermediate',
+        questionCount: 12
+    }
+];
+
+// Basic programming (reuse existing 55 questions)
+const basicProgrammingQuestions = [
     // --- DIFFICULTY 1: WEB FUNDAMENTALS & BASIC DB (11 câu) ---
     { content: "Thẻ <head> trong HTML dùng để làm gì?", options: [{ id: 1, text: "Chứa thông tin meta, tiêu đề và link CSS" }, { id: 2, text: "Hiển thị nội dung chính của trang web" }, { id: 3, text: "Định nghĩa kiểu font chữ" }, { id: 4, text: "Tạo animation" }], correctAnswerIds: [1], difficulty: 1 },
     { content: "Trong SQL, từ khóa nào dùng để lấy dữ liệu?", options: [{ id: 1, text: "GET" }, { id: 2, text: "SELECT" }, { id: 3, text: "FETCH" }, { id: 4, text: "READ" }], correctAnswerIds: [2], difficulty: 1 },
@@ -69,16 +127,110 @@ const mockData = [
     { content: "Làm thế nào để xử lý 'Race Condition' khi hai request cùng cập nhật số dư ví điện tử?", options: [{ id: 1, text: "Sử dụng Atomic Update hoặc Database Lock" }, { id: 2, text: "Dùng if-else ở code backend" }, { id: 3, text: "Không thể xử lý race condition" }, { id: 4, text: "Tạo thread mới" }], correctAnswerIds: [1], difficulty: 5 }
 ];
 
+// OOP & Design Patterns
+const oopQuestions = [
+    { content: "Tính kế thừa (Inheritance) trong OOP cho phép làm gì?", options: [{ id: 1, text: "Lớp con thừa hưởng thuộc tính và phương thức từ lớp cha" }, { id: 2, text: "Xóa các phương thức không dùng" }, { id: 3, text: "Nén dữ liệu lớp" }, { id: 4, text: "Tạo nhiều instance cùng lúc" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Tính đa hình (Polymorphism) là gì?", options: [{ id: 1, text: "Một đối tượng có thể nhận nhiều hình thái khác nhau" }, { id: 2, text: "Tạo nhiều lớp giống nhau" }, { id: 3, text: "Xóa lớp cũ" }, { id: 4, text: "Sao chép code" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Tính đóng gói (Encapsulation) mục đích chính là?", options: [{ id: 1, text: "Che giấu dữ liệu nội bộ và chỉ cung cấp giao diện công khai" }, { id: 2, text: "Tạo mật khẩu" }, { id: 3, text: "Mã hóa dữ liệu" }, { id: 4, text: "Xóa dữ liệu" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Singleton Design Pattern dùng để làm gì?", options: [{ id: 1, text: "Đảm bảo chỉ có một instance duy nhất của lớp" }, { id: 2, text: "Tạo nhiều instance" }, { id: 3, text: "Xóa instance" }, { id: 4, text: "Sao chép class" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Factory Pattern khác gì Direct Instantiation?", options: [{ id: 1, text: "Factory tách logic tạo object, dễ bảo trì hơn" }, { id: 2, text: "Giống hệt nhau" }, { id: 3, text: "Direct Instantiation nhanh hơn" }, { id: 4, text: "Không có khác biệt" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Abstract Class khác gì Interface?", options: [{ id: 1, text: "Abstract Class có thể có implementation, Interface chỉ khai báo" }, { id: 2, text: "Giống hệt nhau" }, { id: 3, text: "Interface mạnh hơn" }, { id: 4, text: "Abstract Class không dùng được" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "SOLID Principle gồm những gì?", options: [{ id: 1, text: "Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion" }, { id: 2, text: "String, Object, List, Integer, Double" }, { id: 3, text: "SQL, Optimization, Logging, Indexing, Dynamic" }, { id: 4, text: "Storage, Order, Library, Input, Data" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Observer Pattern dùng để làm gì?", options: [{ id: 1, text: "Tạo quan hệ one-to-many để observer được thông báo khi đối tượng thay đổi" }, { id: 2, text: "Giám sát database" }, { id: 3, text: "Đếm số user" }, { id: 4, text: "Quản lý file" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Static method trong OOP có thể được gọi mà không cần?", options: [{ id: 1, text: "Tạo instance của lớp" }, { id: 2, text: "Khai báo biến" }, { id: 3, text: "Import thư viện" }, { id: 4, text: "Định nghĩa constructor" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Method Overloading là gì?", options: [{ id: 1, text: "Cùng tên hàm nhưng khác số lượng hoặc kiểu tham số" }, { id: 2, text: "Gọi hàm nhiều lần" }, { id: 3, text: "Xóa hàm" }, { id: 4, text: "Sao chép hàm" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Constructor trong OOP dùng để làm gì?", options: [{ id: 1, text: "Khởi tạo trạng thái ban đầu của object" }, { id: 2, text: "Xóa object" }, { id: 3, text: "Sao chép object" }, { id: 4, text: "Kiểm tra kiểu dữ liệu" }], correctAnswerIds: [1], difficulty: 2 },
+];
+
+// MySQL & Database
+const mysqlQuestions = [
+    { content: "MySQL dùng để quản lý kiểu dữ liệu nào?", options: [{ id: 1, text: "Dữ liệu quan hệ (Relational Data)" }, { id: 2, text: "Dữ liệu JSON" }, { id: 3, text: "Dữ liệu nhị phân" }, { id: 4, text: "Tất cả các loại" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "Lệnh CREATE TABLE dùng để làm gì?", options: [{ id: 1, text: "Tạo một bảng mới trong database" }, { id: 2, text: "Tạo column mới" }, { id: 3, text: "Xóa bảng" }, { id: 4, text: "Sao chép bảng" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "Cột AUTO_INCREMENT dùng để làm gì?", options: [{ id: 1, text: "Tự động tăng giá trị mỗi khi thêm bản ghi mới" }, { id: 2, text: "Tự động xóa dữ liệu" }, { id: 3, text: "Tự động sao chép dữ liệu" }, { id: 4, text: "Tự động mã hóa" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "Sự khác biệt giữa VARCHAR và CHAR?", options: [{ id: 1, text: "VARCHAR lưu độ dài động, CHAR lưu độ dài cố định" }, { id: 2, text: "Giống hệt nhau" }, { id: 3, text: "CHAR nhanh hơn" }, { id: 4, text: "VARCHAR tiết kiệm hơn" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "INDEX trong MySQL có mục đích gì?", options: [{ id: 1, text: "Tăng tốc độ truy vấn SELECT và WHERE" }, { id: 2, text: "Xóa dữ liệu" }, { id: 3, text: "Nén dữ liệu" }, { id: 4, text: "Tạo backup" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "UNIQUE constraint dùng để làm gì?", options: [{ id: 1, text: "Đảm bảo các giá trị trong cột là duy nhất" }, { id: 2, text: "Xóa bản ghi trùng" }, { id: 3, text: "Sao chép cột" }, { id: 4, text: "Mã hóa dữ liệu" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Bao nhiêu cột có thể đặt trong một INDEX lồng (Composite Index)?", options: [{ id: 1, text: "Tối đa 16 cột trong MySQL" }, { id: 2, text: "Chỉ 1 cột" }, { id: 3, text: "Không giới hạn" }, { id: 4, text: "Tối đa 3 cột" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "EXPLAIN trong MySQL dùng để làm gì?", options: [{ id: 1, text: "Phân tích execution plan của câu lệnh SQL" }, { id: 2, text: "Xóa câu lệnh" }, { id: 3, text: "Chạy câu lệnh" }, { id: 4, text: "Sao chép câu lệnh" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "View (Bảng ảo) trong MySQL dùng để làm gì?", options: [{ id: 1, text: "Tạo bảng ảo từ nhiều bảng để đơn giản hóa truy vấn" }, { id: 2, text: "Xóa dữ liệu" }, { id: 3, text: "Sao chép bảng" }, { id: 4, text: "Mã hóa dữ liệu" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Trigger trong MySQL được kích hoạt khi nào?", options: [{ id: 1, text: "Khi xảy ra sự kiện INSERT, UPDATE, hoặc DELETE" }, { id: 2, text: "Lúc khởi động server" }, { id: 3, text: "Lúc tắt server" }, { id: 4, text: "Bất cứ lúc nào" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Tại sao nên dùng Stored Procedure?", options: [{ id: 1, text: "Tăng bảo mật, tốc độ, và giảm traffic mạng" }, { id: 2, text: "Để xóa bảng nhanh" }, { id: 3, text: "Để mã hóa database" }, { id: 4, text: "Để tạo backup" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Partitioning trong MySQL là gì?", options: [{ id: 1, text: "Chia nhỏ một bảng lớn thành nhiều phần để tối ưu hiệu năng" }, { id: 2, text: "Xóa dữ liệu cũ" }, { id: 3, text: "Sao chép bảng" }, { id: 4, text: "Mã hóa bảng" }], correctAnswerIds: [1], difficulty: 4 },
+];
+
+// REST API & Backend
+const restApiQuestions = [
+    { content: "REST API viết tắt của gì?", options: [{ id: 1, text: "Representational State Transfer API" }, { id: 2, text: "Real-time Server Transfer API" }, { id: 3, text: "Relational Entity Service Transfer" }, { id: 4, text: "Resource Encoding Service Transfer" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "HTTP method POST dùng để làm gì?", options: [{ id: 1, text: "Tạo dữ liệu mới" }, { id: 2, text: "Lấy dữ liệu" }, { id: 3, text: "Cập nhật dữ liệu" }, { id: 4, text: "Xóa dữ liệu" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "Status code 201 có nghĩa là gì?", options: [{ id: 1, text: "Created - Dữ liệu được tạo thành công" }, { id: 2, text: "Bad Request" }, { id: 3, text: "Unauthorized" }, { id: 4, text: "Server Error" }], correctAnswerIds: [1], difficulty: 1 },
+    { content: "Bearer Token trong Authorization dùng để làm gì?", options: [{ id: 1, text: "Xác thực người dùng qua JWT token" }, { id: 2, text: "Mã hóa password" }, { id: 3, text: "Lưu session" }, { id: 4, text: "Tạo cookie" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Rate Limiting dùng để làm gì?", options: [{ id: 1, text: "Giới hạn số request từ một IP để tránh abuse" }, { id: 2, text: "Tăng tốc độ API" }, { id: 3, text: "Xóa request" }, { id: 4, text: "Sao chép request" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Error handling middleware trong Express được dùng khi nào?", options: [{ id: 1, text: "Khi có lỗi xảy ra trong request" }, { id: 2, text: "Lúc khởi động server" }, { id: 3, text: "Lúc shutdown" }, { id: 4, text: "Không bao giờ" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Idempotent request là gì?", options: [{ id: 1, text: "Gọi nhiều lần cũng có kết quả giống như gọi 1 lần" }, { id: 2, text: "Gọi mà không có kết quả" }, { id: 3, text: "Gọi và xóa dữ liệu" }, { id: 4, text: "Gọi ngẫu nhiên" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "Pagination trong API dùng để làm gì?", options: [{ id: 1, text: "Chia nhỏ dữ liệu lớn thành nhiều trang để giảm tải" }, { id: 2, text: "Xóa dữ liệu" }, { id: 3, text: "Mã hóa dữ liệu" }, { id: 4, text: "Sao chép dữ liệu" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Body Parser middleware trong Express dùng để làm gì?", options: [{ id: 1, text: "Parse JSON hoặc form data từ request body" }, { id: 2, text: "Xóa request body" }, { id: 3, text: "Mã hóa request" }, { id: 4, text: "Tạo response" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "Logging trong Backend nên làm gì?", options: [{ id: 1, text: "Ghi lại thông tin request/response để debug" }, { id: 2, text: "Xóa logs cũ" }, { id: 3, text: "Mã hóa logs" }, { id: 4, text: "Gửi logs" }], correctAnswerIds: [1], difficulty: 2 },
+    { content: "API Versioning (v1, v2) dùng để làm gì?", options: [{ id: 1, text: "Quản lý nhiều phiên bản API để tránh break client cũ" }, { id: 2, text: "Xóa API cũ" }, { id: 3, text: "Tăng tốc độ" }, { id: 4, text: "Giảm bảo mật" }], correctAnswerIds: [1], difficulty: 3 },
+    { content: "WebSocket khác gì HTTP polling?", options: [{ id: 1, text: "WebSocket là kết nối hai chiều liên tục, polling phải gọi liên tục" }, { id: 2, text: "Giống hệt nhau" }, { id: 3, text: "Polling nhanh hơn" }, { id: 4, text: "HTTP polling an toàn hơn" }], correctAnswerIds: [1], difficulty: 3 },
+];
+
 const seed = async () => {
     try {
         await connectDB();
-        await Question.deleteMany({});
-        await Question.insertMany(mockData);
-        console.log("Seeded 55 high-quality questions successfully with 4 options each!");
+
+        // Reset collections to avoid duplicate keys between runs
+        await Promise.all([
+            Question.deleteMany({}),
+            Exam.deleteMany({})
+        ]);
+
+        // Create exams
+        const createdExams = await Exam.insertMany(examSeeds);
+        console.log(`Created ${createdExams.length} exams`);
+
+        // Map exam codes to IDs
+        const examMap = {
+            'BASIC-PROGRAMMING': createdExams[0]._id,
+            'OOP-ADVANCED': createdExams[1]._id,
+            'MYSQL-DATABASE': createdExams[2]._id,
+            'REST-API-BACKEND': createdExams[3]._id
+        };
+
+        // Attach examId, title, topic
+        const allQuestions = [
+            ...basicProgrammingQuestions.map((q, idx) => ({
+                ...q,
+                title: q.title || `Kiến thức cơ bản #${idx + 1}`,
+                topic: q.topic || 'Lập trình cơ bản',
+                examId: examMap['BASIC-PROGRAMMING']
+            })),
+            ...oopQuestions.map((q, idx) => ({
+                ...q,
+                title: q.title || `OOP & Design Patterns #${idx + 1}`,
+                topic: q.topic || 'Hướng đối tượng',
+                examId: examMap['OOP-ADVANCED']
+            })),
+            ...mysqlQuestions.map((q, idx) => ({
+                ...q,
+                title: q.title || `MySQL & Database #${idx + 1}`,
+                topic: q.topic || 'Cơ sở dữ liệu',
+                examId: examMap['MYSQL-DATABASE']
+            })),
+            ...restApiQuestions.map((q, idx) => ({
+                ...q,
+                title: q.title || `REST API & Backend #${idx + 1}`,
+                topic: q.topic || 'REST API',
+                examId: examMap['REST-API-BACKEND']
+            }))
+        ];
+
+        await Question.insertMany(allQuestions);
+        console.log(`✅ Seeded ${allQuestions.length} questions across ${createdExams.length} exams successfully!`);
         process.exit();
     } catch (err) {
-        console.error(" Error seeding data:", err);
+        console.error('❌ Error seeding data:', err);
         process.exit(1);
     }
 };
+
 seed();

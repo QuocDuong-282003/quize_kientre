@@ -10,6 +10,7 @@ const QuizSessionSchema = new mongoose.Schema({
         difficulty: Number,
         timestamp: { type: Date, default: Date.now }
     }],
+    examId: { type: mongoose.Schema.Types.ObjectId, ref: 'Exam' },
     currentDifficulty: { type: Number, default: 3 },
     nextQuestionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
     currentQuestionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },

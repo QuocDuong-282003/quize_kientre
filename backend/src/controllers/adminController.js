@@ -55,6 +55,27 @@ class AdminController {
             res.status(status).json({ error: err.message });
         }
     }
+
+    // Exams
+    async getExams(req, res) {
+        try {
+            const exams = await adminService.listExams();
+            res.json(exams);
+        } catch (err) {
+            const status = err.status || 500;
+            res.status(status).json({ error: err.message });
+        }
+    }
+
+    async createExam(req, res) {
+        try {
+            const exam = await adminService.createExam(req.body);
+            res.status(201).json({ message: 'Exam created', exam });
+        } catch (err) {
+            const status = err.status || 500;
+            res.status(status).json({ error: err.message });
+        }
+    }
 }
 
 module.exports = new AdminController();

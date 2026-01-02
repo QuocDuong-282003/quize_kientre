@@ -24,7 +24,7 @@ class AdaptiveService {
     }
 
 
-    async getNextQuestion(difficulty, answeredIds, userId = null) {
+    async getNextQuestion(difficulty, answeredIds, userId = null, examId = null) {
         const { Types: { ObjectId } } = require('mongoose');
         const answeredObjectIds = answeredIds.map(id => new ObjectId(id));
 
@@ -32,6 +32,10 @@ class AdaptiveService {
             difficulty: difficulty,
             _id: { $nin: answeredObjectIds }
         };
+
+        if (examId) {
+            matchCondition.examId = new ObjectId(examId);
+        }
 
         if (userId) {
             const QuizSession = require('../models/QuizSession');
@@ -56,6 +60,9 @@ class AdaptiveService {
 
         if (results.length === 0) {
             let fallbackCondition = { _id: { $nin: answeredObjectIds } };
+            if (examId) {
+                fallbackCondition.examId = new ObjectId(examId);
+            }
             if (userId) {
                 const QuizSession = require('../models/QuizSession');
                 const userSessions = await QuizSession.find({ userId });

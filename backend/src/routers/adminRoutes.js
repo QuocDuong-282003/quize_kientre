@@ -17,4 +17,8 @@ router.put('/questions/:id', adminController.updateQuestion);
 // Delete question
 router.delete('/questions/:id', adminController.deleteQuestion);
 
+// Exams
+router.get('/exams', adminController.getExams);
+router.post('/exams', adminController.createExam);
+
 module.exports = router;

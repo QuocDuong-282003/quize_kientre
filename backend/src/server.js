@@ -11,6 +11,23 @@ dotenv.config();
 const app = express();
 connectDB();
 
+// Auto-seed on startup
+const seedData = async () => {
+  try {
+    const Question = require('./models/Question');
+    const Exam = require('./models/Exam');
+    const count = await Question.countDocuments();
+    if (count === 0) {
+      console.log('Seeding database...');
+      require('./seed');
+    }
+  } catch (err) {
+    console.error('Seed error:', err);
+  }
+};
+
+setTimeout(seedData, 2000);
+
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
   .split(',')
   .map(origin => origin.trim())

@@ -2,6 +2,27 @@ const QuizSession = require('../models/QuizSession');
 const Question = require('../models/Question');
 const adaptiveService = require('../services/adaptiveService');
 
+// Get questions by examId
+exports.getQuestionsByExam = async (req, res) => {
+    try {
+        const { examId } = req.params;
+        const { Types: { ObjectId } } = require('mongoose');
+
+        const questions = await Question.find({ examId: new ObjectId(examId) })
+            .select('-__v')
+            .sort({ difficulty: 1 });
+
+        if (!questions || questions.length === 0) {
+            return res.status(404).json({ error: 'No questions found for this exam' });
+        }
+
+        res.json(questions);
+    } catch (err) {
+        console.error('Get Questions Error:', err.message);
+        res.status(500).json({ error: err.message });
+    }
+};
+
 // exports.startQuiz = async (req, res) => {
 //     try {
 //         const firstQuestion = await Question.findOne({ difficulty: 3 });
@@ -17,16 +38,18 @@ const adaptiveService = require('../services/adaptiveService');
 // };
 exports.startQuiz = async (req, res) => {
     try {
-        const { userId } = req.body; // Nhận userId từ FE (có thể là null)
+        const { userId, examId } = req.body;
         const { Types: { ObjectId } } = require('mongoose');
+
+        const examMatch = examId ? { examId: new ObjectId(examId) } : {};
 
         // Nếu user không login, random câu hỏi bình thường
         let firstQ;
         if (!userId) {
-            firstQ = await Question.findOne({ difficulty: 3 });
+            firstQ = await Question.findOne({ difficulty: 3, ...examMatch });
         } else {
             // Nếu user đã login, lấy danh sách câu hỏi đã làm
-            const userSessions = await QuizSession.find({ userId });
+            const userSessions = await QuizSession.find(examId ? { userId, examId } : { userId });
             const answeredQuestionIds = [];
             const wrongQuestionIds = [];
 
@@ -46,6 +69,7 @@ exports.startQuiz = async (req, res) => {
                 {
                     $match: {
                         difficulty: 3,
+                        ...examMatch,
                         _id: {
                             $nin: answeredQuestionIds.map(id => new ObjectId(id)),
                             $in: [
@@ -63,6 +87,7 @@ exports.startQuiz = async (req, res) => {
                     {
                         $match: {
                             difficulty: 3,
+                            ...examMatch,
                             _id: { $nin: answeredQuestionIds.map(id => new ObjectId(id)) }
                         }
                     },
@@ -70,15 +95,20 @@ exports.startQuiz = async (req, res) => {
                 ]);
             }
 
-            firstQ = firstQ.length > 0 ? firstQ[0] : await Question.findOne({ difficulty: 3 });
+            firstQ = firstQ.length > 0 ? firstQ[0] : await Question.findOne({ difficulty: 3, ...examMatch });
+        }
+
+        if (!firstQ) {
+            return res.status(404).json({ error: 'No questions available for this exam' });
         }
 
         const session = new QuizSession({
             userId: userId || null,
+            examId: examId || null,
             currentQuestionId: firstQ._id
         });
         await session.save();
-        res.json({ sessionId: session._id, question: firstQ });
+        res.json({ sessionId: session._id, question: firstQ, examId: examId || null });
     } catch (err) {
         console.error('Start Quiz Error:', err.message);
         res.status(500).json({ error: err.message });
@@ -159,6 +189,7 @@ exports.submitAnswer = async (req, res) => {
                 score: result.score,
                 level: result.level,
                 reviewData: fullSession.history,
+                sessionId: session._id,
                 reason: 'finish_early'
             });
         }
@@ -198,6 +229,9 @@ exports.submitAnswer = async (req, res) => {
         // Kiểm tra đúng/sai
         const isCorrect = JSON.stringify(selectedAnswerIds.sort()) === JSON.stringify(question.correctAnswerIds.sort());
 
+        // Buộc kết thúc nếu bị phát hiện gian lận (chuyển tab / rời chuột 3 lần)
+        const forceFinish = reason === 'tab_switch' || reason === 'mouse_leave_violation';
+
         // LƯU LỊCH SỬ (Bao gồm cả đáp án người dùng chọn)
         session.history.push({
             questionId: question._id,
@@ -208,7 +242,7 @@ exports.submitAnswer = async (req, res) => {
 
         // Kiểm tra điều kiện kết thúc
         const isEarlyExit = adaptiveService.checkEarlyExit(session.history);
-        const shouldFinish = finishEarly || session.history.length >= 10 || isEarlyExit;
+        const shouldFinish = forceFinish || finishEarly || session.history.length >= 10 || isEarlyExit;
         if (shouldFinish) {
             const result = adaptiveService.calculateResult(session.history);
 
@@ -226,13 +260,14 @@ exports.submitAnswer = async (req, res) => {
                 score: result.score,
                 level: result.level,
                 reviewData: fullSession.history,
-                reason: finishEarly ? 'finish_early' : (isEarlyExit ? 'early_exit' : 'completed')
+                sessionId: session._id,
+                reason: forceFinish ? reason : (finishEarly ? 'finish_early' : (isEarlyExit ? 'early_exit' : 'completed'))
             });
         }
 
         // Nếu chưa kết thúc, tìm câu hỏi tiếp theo
         const nextDiff = adaptiveService.calculateNextDifficulty(question.difficulty, isCorrect);
-        const nextQ = await adaptiveService.getNextQuestion(nextDiff, session.history.map(h => h.questionId), session.userId);
+        const nextQ = await adaptiveService.getNextQuestion(nextDiff, session.history.map(h => h.questionId), session.userId, session.examId);
 
         session.currentQuestionId = nextQ._id;
         await session.save();
