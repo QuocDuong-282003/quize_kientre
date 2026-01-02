@@ -26,6 +26,42 @@
     letter-spacing: 0.3px;
 }
 
+@media (max-width: 768px) {
+    .header-user-section {
+        gap: 12px;
+    }
+
+    .user-info-container {
+        padding: 8px 12px;
+        gap: 8px;
+    }
+
+    .user-email {
+        font-size: 11px;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-user-section {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .user-info-container {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .user-email {
+        font-size: 10px;
+        max-width: 80px;
+    }
+}
+
 .logout-button {
     padding: 10px 24px;
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
@@ -66,6 +102,23 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
+@media (max-width: 768px) {
+    .logout-button,
+    .login-button {
+        padding: 8px 16px;
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .logout-button,
+    .login-button {
+        padding: 6px 12px;
+        font-size: 10px;
+        letter-spacing: 0.3px;
+    }
+}
+
 .guest-warning {
     position: fixed;
     top: 20px;
@@ -96,4 +149,25 @@
     font-size: 14px;
     margin-bottom: 20px;
     font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .guest-warning {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        padding: 12px 15px;
+        font-size: 12px;
+    }
+
+    .saved-history-notice {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .guest-warning {
+        font-size: 11px;
+        padding: 10px 12px;
+    }
 }

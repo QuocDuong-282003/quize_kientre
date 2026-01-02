@@ -12,6 +12,7 @@
     font-weight: 700;
     text-align: center;
     min-width: 400px;
+    max-width: 90%;
     animation: shake 0.5s;
     border: 3px solid rgba(255, 255, 255, 0.3);
 }
@@ -78,6 +79,7 @@
     font-weight: 600;
     text-align: center;
     min-width: 400px;
+    max-width: 90%;
     border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
@@ -91,9 +93,11 @@
 
     .warning-banner,
     .result-warning {
-        min-width: 90%;
+        min-width: auto;
+        width: 90%;
         padding: 15px 20px;
         font-size: 14px;
+        top: 60px;
     }
 
     .warning-icon,
