@@ -71,7 +71,7 @@ const ReviewPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                 <span style={{ fontWeight: 'bold', color: '#004a99' }}>Câu {101 + index} (Độ khó: {item.difficulty}/5)</span>
                 <span style={{ fontWeight: 'bold', color: item.isCorrect ? 'green' : 'red' }}>
-                  {item.isCorrect ? '✓ ĐÚNG' : '✗ SAI'}
+                  {item.isCorrect ? ' ĐÚNG' : ' SAI'}
                 </span>
               </div>
               <p style={{ fontSize: '18px', marginBottom: '15px', color: '#2d3748' }}>
