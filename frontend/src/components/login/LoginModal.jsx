@@ -2,6 +2,36 @@ import React, { useState, useRef } from 'react';
 import authService from '../../services/auth';
 import './LoginModal.css';
 
+const PasswordInput = ({
+    value,
+    onChange,
+    showPass,
+    setShowPass,
+    placeholder,
+    inputRef
+}) => {
+    return (
+        <div className="password-input-wrapper">
+            <input
+                ref={inputRef}
+                type={showPass ? 'text' : 'password'}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                required
+                className="auth-input"
+                style={{ paddingRight: '45px' }}
+            />
+            <span
+                onClick={() => setShowPass(!showPass)}
+                className="password-toggle-icon"
+            >
+                {showPass ? '👁️' : '👁️‍🗨️'}
+            </span>
+        </div>
+    );
+};
+
 const LoginModal = ({ onLoginSuccess, onClose }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -36,7 +66,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                     onLoginSuccess(data);
                     onClose();
                 } else {
-                    alert('✅ Đăng ký thành công! Vui lòng đăng nhập.');
+                    alert(' Đăng ký thành công! Vui lòng đăng nhập.');
                     setIsLogin(true);
                     setEmail('');
                     setPassword('');
@@ -60,36 +90,6 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
         setShowConfirmPassword(false);
     };
 
-    const PasswordInput = ({
-        value,
-        onChange,
-        showPass,
-        setShowPass,
-        placeholder,
-        inputRef
-    }) => {
-        return (
-            <div className="password-input-wrapper">
-                <input
-                    ref={inputRef}
-                    type={showPass ? 'text' : 'password'}
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                    required
-                    className="auth-input"
-                    style={{ paddingRight: '45px' }}
-                />
-                <span
-                    onClick={() => setShowPass(!showPass)}
-                    className="password-toggle-icon"
-                >
-                    {showPass ? '👁️' : '👁️‍🗨️'}
-                </span>
-            </div>
-        );
-    };
-
     return (
         <div className="modal-overlay">
             <div className="modal-container">
@@ -98,7 +98,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                 </button>
 
                 <h2 className="modal-title">
-                    {isLogin ? '🔓 Đăng Nhập' : '📝 Đăng Ký'}
+                    {isLogin ? ' Đăng Nhập' : 'Đăng Ký'}
                 </h2>
                 <p className="modal-subtitle">
                     {isLogin ? 'Chào mừng trở lại!' : 'Tạo tài khoản mới'}
@@ -155,7 +155,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                         className="submit-button"
                     >
                         {loading
-                            ? '⏳ Đang xử lý...'
+                            ? ' Đang xử lý...'
                             : isLogin
                                 ? 'Đăng Nhập'
                                 : 'Đăng Ký'}
