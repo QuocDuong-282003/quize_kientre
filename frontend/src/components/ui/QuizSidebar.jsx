@@ -18,14 +18,14 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
                     {loading ? ' Đang xử lý...' : '✓ Câu tiếp theo'}
                 </button>
 
-                <button
+                {/* <button
                     onClick={onFinishEarly}
                     disabled={loading}
                     className="finish-btn"
                     title="Nộp bài ngay với các câu đã làm"
                 >
                     Nộp bài sớm
-                </button>
+                </button> */}
             </div>
 
             <div className="progress-section">
