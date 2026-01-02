@@ -10,8 +10,8 @@ exports.login = async (req, res) => {
             return res.status(401).json({ message: "Email không tồn tại. Vui lòng đăng ký!" });
         }
 
-        // Kiểm tra mật khẩu đơn giản
-        if (user.password !== password) {
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
             return res.status(401).json({ message: "Sai mật khẩu" });
         }
 
