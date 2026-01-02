@@ -128,7 +128,7 @@ exports.startQuiz = async (req, res) => {
 
 exports.submitAnswer = async (req, res) => {
     try {
-        const { sessionId, questionId, selectedAnswerIds, reason } = req.body;
+        const { sessionId, questionId, selectedAnswerIds, reason, finishEarly } = req.body;
         console.log('Submit Answer - sessionId:', sessionId, 'questionId:', questionId, 'reason:', reason);
 
         const session = await QuizSession.findById(sessionId);
@@ -186,7 +186,8 @@ exports.submitAnswer = async (req, res) => {
 
         // Kiểm tra điều kiện kết thúc
         const isEarlyExit = adaptiveService.checkEarlyExit(session.history);
-        if (session.history.length >= 10 || isEarlyExit) {
+        const shouldFinish = finishEarly || session.history.length >= 10 || isEarlyExit;
+        if (shouldFinish) {
             const result = adaptiveService.calculateResult(session.history);
 
             session.isFinished = true;
@@ -203,7 +204,8 @@ exports.submitAnswer = async (req, res) => {
                 isFinished: true,
                 score: result.score,
                 level: result.level,
-                reviewData: fullSession.history // Đây chính là dữ liệu để FE xem lại
+                reviewData: fullSession.history, // Đây chính là dữ liệu để FE xem lại
+                reason: finishEarly ? 'finish_early' : (isEarlyExit ? 'early_exit' : 'completed')
             });
         }
 
