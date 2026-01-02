@@ -255,60 +255,92 @@
 
 @media (max-width: 1024px) {
   .quiz-content {
-    padding: 20px 30px;
+    padding: 15px 20px;
   }
 
   .question-container {
     gap: 15px;
   }
+
+  .question-text {
+    font-size: 20px;
+  }
 }
 
 @media (max-width: 768px) {
   .quiz-content {
-    padding: 20px;
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
   }
 
   .question-container {
-    flex-direction: column;
-    gap: 20px;
+    gap: 15px;
   }
 
   .question-number {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-
-  .question-text {
+    width: 45px;
+    height: 45px;
     font-size: 18px;
   }
 
+  .question-text {
+    font-size: 17px;
+    margin-bottom: 15px;
+  }
+
   .option-content {
-    padding: 16px;
+    padding: 14px;
+  }
+
+  .selection-info {
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 15px;
   }
 }
 
 @media (max-width: 480px) {
   .quiz-content {
-    padding: 15px;
+    padding: 12px;
   }
 
-  .question-text {
+  .question-number {
+    width: 40px;
+    height: 40px;
     font-size: 16px;
   }
 
+  .question-text {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+
   .option-content {
-    padding: 12px;
-    gap: 12px;
+    padding: 10px;
+    gap: 10px;
   }
 
   .option-letter {
-    width: 30px;
-    height: 30px;
-    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
   }
 
   .option-text {
-    font-size: 14px;
+    font-size: 13px;
+  }
+
+  .options-container {
+    gap: 10px;
+  }
+
+  .selection-info {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .check-icon {
+    font-size: 20px;
   }
 }
