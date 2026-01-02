@@ -46,7 +46,7 @@ export default function AdminPage() {
             ...prev,
             correctAnswerIds: prev.correctAnswerIds.includes(id)
                 ? prev.correctAnswerIds.filter(aid => aid !== id)
-                : [...prev.correctAnswerIds, id].slice(0, 3)
+                : [...prev.correctAnswerIds, id].slice(0, 3) // Max 3 correct answers
         }));
     };
 
@@ -145,6 +145,7 @@ export default function AdminPage() {
 
             {error && <div className="error-message">{error}</div>}
 
+            {/* Form Thêm/Sửa */}
             {showForm && (
                 <div className="question-form-container">
                     <h2>{editingId ? ' Sửa Câu Hỏi' : ' Thêm Câu Hỏi Mới'}</h2>

@@ -154,7 +154,6 @@ const QuizPage = () => {
       );
 
       if (data.isFinished) {
-        console.log('Quiz finished - Result data:', data);
         navigate('/result', { state: { result: data } });
       } else {
         setQuestion(data.nextQuestion);
@@ -166,42 +165,6 @@ const QuizPage = () => {
       console.error(error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleEarlySubmit = async () => {
-    if (progress < 1) {
-      alert("Bạn cần làm ít nhất 1 câu hỏi trước khi nộp bài!");
-      return;
-    }
-
-    const confirmSubmit = window.confirm(
-      `Bạn đã làm ${progress} câu. Bạn có chắc muốn nộp bài sớm không?`
-    );
-
-    if (!confirmSubmit) return;
-
-    setLoading(true);
-    setIsSubmitting(true);
-    try {
-      const data = await quizService.submitAnswer(
-        sessionId,
-        question._id,
-        selectedIds.length > 0 ? selectedIds : [],
-        'early_submit'
-      );
-
-      navigate('/result', {
-        state: {
-          result: data,
-          warning: progress < 10 ? `Bạn đã nộp bài sớm sau ${progress} câu hỏi.` : null
-        }
-      });
-    } catch (error) {
-      alert(" Có lỗi xảy ra khi nộp bài. Vui lòng thử lại!");
-      console.error(error);
-      setLoading(false);
-      setIsSubmitting(false);
     }
   };
 
@@ -242,7 +205,6 @@ const QuizPage = () => {
           progress={progress}
           timer={timer}
           onSubmit={handleNext}
-          onEarlySubmit={handleEarlySubmit}
           loading={loading}
         />
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '../App.css';
-import './ResultPage.css';
+import './QuizPage.css';
 
 const ResultPage = () => {
   const location = useLocation();
@@ -46,10 +46,11 @@ const ResultPage = () => {
         <div className="header-title">Adaptive Quiz Platform</div>
       </div>
       <div className="main-content">
-        <div className="result-screen" style={{ paddingBottom: '150px', paddingLeft: '131px', paddingRight: '131px' }}>
+        <div className="result-screen">
+          <div className="result-icon">🎉</div>
           <h1 className="result-title">Hoàn thành xuất sắc!</h1>
-          <div className="result-level">{result.level || 'Beginner'}</div>
-          <p className="result-score">Điểm số: {result.score !== undefined && result.score !== null ? result.score : 0}/100</p>
+          <div className="result-level">{result.level}</div>
+          <p className="result-score">Điểm số: {result.score}/100</p>
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
             <button
               className="review-btn"

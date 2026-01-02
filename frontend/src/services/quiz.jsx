@@ -13,42 +13,23 @@ const API = axios.create({
 // Quiz service functions
 export const quizService = {
     startQuiz: async (userId) => {
-        try {
-            const response = await API.post('/api/quiz/start', { userId });
-            return response.data;
-        } catch (error) {
-            console.error('Start quiz error:', error.response?.data || error.message);
-            throw error;
-        }
+        const response = await API.post('/api/quiz/start', { userId });
+        return response.data;
     },
 
     submitAnswer: async (sessionId, questionId, selectedAnswerIds, reason = null) => {
-        try {
-            const response = await API.post('/api/quiz/submit', {
-                sessionId,
-                questionId,
-                selectedAnswerIds,
-                reason
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Submit answer error:', error.response?.data || error.message);
-            // Trả về error message từ backend nếu có
-            if (error.response?.data?.message) {
-                throw new Error(error.response.data.message);
-            }
-            throw error;
-        }
+        const response = await API.post('/api/quiz/submit', {
+            sessionId,
+            questionId,
+            selectedAnswerIds,
+            reason
+        });
+        return response.data;
     },
 
     getReview: async (sessionId) => {
-        try {
-            const response = await API.get(`/api/quiz/review/${sessionId}`);
-            return response.data;
-        } catch (error) {
-            console.error('Get review error:', error.response?.data || error.message);
-            throw error;
-        }
+        const response = await API.get(`/api/quiz/review/${sessionId}`);
+        return response.data;
     }
 };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import './QuizSidebar.css';
 
-const QuizSidebar = ({ progress, onSubmit, onEarlySubmit, timer, loading }) => {
+const QuizSidebar = ({ progress, onSubmit, timer, loading }) => {
     return (
         <div className="quiz-sidebar">
             <div className="timer-section">
@@ -14,42 +14,8 @@ const QuizSidebar = ({ progress, onSubmit, onEarlySubmit, timer, loading }) => {
                 disabled={loading}
                 className={`submit-btn ${loading ? 'loading' : ''}`}
             >
-                {loading ? ' Đang xử lý...' : '✓ Câu tiếp theo'}
+                {loading ? '⏳ Đang xử lý...' : '✓ Câu tiếp theo'}
             </button>
-
-            {progress >= 1 && progress < 10 && (
-                <button
-                    onClick={onEarlySubmit}
-                    disabled={loading}
-                    className="early-submit-btn"
-                    style={{
-                        marginTop: '10px',
-                        padding: '12px 20px',
-                        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        opacity: loading ? 0.6 : 1,
-                        boxShadow: '0 4px 15px rgba(255, 152, 0, 0.3)',
-                        transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                        if (!loading) {
-                            e.target.style.transform = 'translateY(-2px)';
-                            e.target.style.boxShadow = '0 6px 20px rgba(255, 152, 0, 0.4)';
-                        }
-                    }}
-                    onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.3)';
-                    }}
-                >
-                    Nộp bài sớm ({progress}/10)
-                </button>
-            )}
 
             <div className="progress-section">
                 <div className="progress-header">

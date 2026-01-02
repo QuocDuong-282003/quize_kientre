@@ -36,7 +36,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                     onLoginSuccess(data);
                     onClose();
                 } else {
-                    alert(' Đăng ký thành công! Vui lòng đăng nhập.');
+                    alert('✅ Đăng ký thành công! Vui lòng đăng nhập.');
                     setIsLogin(true);
                     setEmail('');
                     setPassword('');
@@ -60,8 +60,34 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
         setShowConfirmPassword(false);
     };
 
-    const handlePasswordToggle = (setShowPass, currentValue) => {
-        setShowPass(!currentValue);
+    const PasswordInput = ({
+        value,
+        onChange,
+        showPass,
+        setShowPass,
+        placeholder,
+        inputRef
+    }) => {
+        return (
+            <div className="password-input-wrapper">
+                <input
+                    ref={inputRef}
+                    type={showPass ? 'text' : 'password'}
+                    placeholder={placeholder}
+                    value={value}
+                    onChange={onChange}
+                    required
+                    className="auth-input"
+                    style={{ paddingRight: '45px' }}
+                />
+                <span
+                    onClick={() => setShowPass(!showPass)}
+                    className="password-toggle-icon"
+                >
+                    {showPass ? '👁️' : '👁️‍🗨️'}
+                </span>
+            </div>
+        );
     };
 
     return (
@@ -72,7 +98,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                 </button>
 
                 <h2 className="modal-title">
-                    {isLogin ? ' Đăng Nhập' : ' Đăng Ký'}
+                    {isLogin ? '🔓 Đăng Nhập' : '📝 Đăng Ký'}
                 </h2>
                 <p className="modal-subtitle">
                     {isLogin ? 'Chào mừng trở lại!' : 'Tạo tài khoản mới'}
@@ -93,71 +119,27 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
 
                     <div className="form-group">
                         <label className="form-label">Mật khẩu</label>
-                        <div className="password-input-wrapper">
-                            <input
-                                ref={passwordInputRef}
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Nhập mật khẩu"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="auth-input"
-                                style={{ paddingRight: '45px' }}
-                            />
-                            <span
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    setShowPassword(!showPassword);
-                                }}
-                                className="password-toggle-icon"
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        setShowPassword(!showPassword);
-                                    }
-                                }}
-                            >
-                                {showPassword ? '👁️' : '👁️‍🗨️'}
-                            </span>
-                        </div>
+                        <PasswordInput
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            showPass={showPassword}
+                            setShowPass={setShowPassword}
+                            placeholder="Nhập mật khẩu"
+                            inputRef={passwordInputRef}
+                        />
                     </div>
 
                     {!isLogin && (
                         <div className="form-group">
                             <label className="form-label">Nhập lại mật khẩu</label>
-                            <div className="password-input-wrapper">
-                                <input
-                                    ref={confirmPasswordInputRef}
-                                    type={showConfirmPassword ? 'text' : 'password'}
-                                    placeholder="Xác nhận mật khẩu"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    className="auth-input"
-                                    style={{ paddingRight: '45px' }}
-                                />
-                                <span
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        setShowConfirmPassword(!showConfirmPassword);
-                                    }}
-                                    className="password-toggle-icon"
-                                    role="button"
-                                    tabIndex={0}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            setShowConfirmPassword(!showConfirmPassword);
-                                        }
-                                    }}
-                                >
-                                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
-                                </span>
-                            </div>
+                            <PasswordInput
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                showPass={showConfirmPassword}
+                                setShowPass={setShowConfirmPassword}
+                                placeholder="Xác nhận mật khẩu"
+                                inputRef={confirmPasswordInputRef}
+                            />
                         </div>
                     )}
 
@@ -173,7 +155,7 @@ const LoginModal = ({ onLoginSuccess, onClose }) => {
                         className="submit-button"
                     >
                         {loading
-                            ? ' Đang xử lý...'
+                            ? '⏳ Đang xử lý...'
                             : isLogin
                                 ? 'Đăng Nhập'
                                 : 'Đăng Ký'}

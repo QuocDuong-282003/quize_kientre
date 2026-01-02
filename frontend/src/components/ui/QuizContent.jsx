@@ -26,6 +26,7 @@ const QuizContent = ({ question, progress, onSelect, selectedIds, loading }) => 
         <div className="quiz-content">
             <div className="quiz-header">
                 <div className="difficulty-badge">
+                    {/* <span className="badge-icon">⚡</span> */}
                     <span>Độ khó: {question.difficulty}/5</span>
                 </div>
                 <div className="progress-text">
@@ -39,12 +40,6 @@ const QuizContent = ({ question, progress, onSelect, selectedIds, loading }) => 
                 </div>
                 <div className="question-content">
                     <h2 className="question-text">{question.content}</h2>
-
-                    {question.correctAnswerIds && question.correctAnswerIds.length > 1 && (
-                        <div className="multiple-answer-hint">
-                            Có thể chọn nhiều đáp án
-                        </div>
-                    )}
 
                     {selectedIds.length > 0 && (
                         <div className="selection-info">
