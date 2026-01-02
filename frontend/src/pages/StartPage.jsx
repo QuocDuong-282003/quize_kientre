@@ -88,7 +88,7 @@ const StartPage = () => {
       <div className="main-content">
         <div className="start-screen">
           <div className="start-icon">🧠</div>
-          <h1 className="start-title">Kiểm tra trình độ thích ứng</h1>
+          <h1 className="start-title">Kiểm tra ứng viên</h1>
           <p className="start-subtitle">
             Hệ thống sẽ tự động điều chỉnh độ khó của câu hỏi<br />
             dựa trên khả năng của bạn để đánh giá chính xác nhất
