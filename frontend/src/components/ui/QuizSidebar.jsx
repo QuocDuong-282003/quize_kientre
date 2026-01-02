@@ -1,13 +1,15 @@
 import React from 'react';
 import './QuizSidebar.css';
 
-const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
+const QuizSidebar = ({ progress, onSubmit, onFinishEarly, onFinishFinal, quizFinished, timer, loading }) => {
     return (
         <div className="quiz-sidebar">
             <div className="timer-section">
                 <div className="timer-label"> Thời gian</div>
                 <div className="timer-value">{timer}</div>
             </div>
+
+            <div className="sidebar-actions">
                 <button
                     onClick={onSubmit}
                     disabled={loading || quizFinished}
@@ -35,8 +37,6 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, timer, loading }) => {
                         ⚑ Nộp bài sớm
                     </button>
                 )}
-                    Nộp bài sớm
-                </button> */}
             </div>
 
             <div className="progress-section">
