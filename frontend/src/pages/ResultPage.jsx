@@ -3,6 +3,30 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import '../App.css';
 import './QuizPage.css';
 
+const computeResultFallback = (payload) => {
+  if (!payload) return null;
+
+  // Prefer existing values
+  if (payload.score !== undefined && payload.level) return payload;
+
+  const history = payload.reviewData || payload.history || [];
+  if (!history.length) return payload;
+
+  const totalDifficulty = history.reduce((sum, item) => sum + (item.difficulty || 0), 0);
+  const earnedDifficulty = history.reduce((sum, item) => sum + (item.isCorrect ? (item.difficulty || 0) : 0), 0);
+  const score = totalDifficulty > 0 ? Math.round((earnedDifficulty / totalDifficulty) * 100) : 0;
+
+  let level = 'Beginner';
+  if (score >= 80) level = 'Advanced';
+  else if (score >= 55) level = 'Intermediate';
+
+  return {
+    ...payload,
+    score,
+    level,
+  };
+};
+
 const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,12 +34,14 @@ const ResultPage = () => {
 
   useEffect(() => {
     if (location.state?.result) {
-      setResult(location.state.result);
-      localStorage.setItem('lastResult', JSON.stringify(location.state.result));
+      const normalized = computeResultFallback(location.state.result);
+      setResult(normalized);
+      localStorage.setItem('lastResult', JSON.stringify(normalized));
     } else {
       const saved = localStorage.getItem('lastResult');
       if (saved) {
-        setResult(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setResult(computeResultFallback(parsed));
       }
     }
   }, [location.state]);
@@ -51,6 +77,9 @@ const ResultPage = () => {
           <h1 className="result-title">Hoàn thành xuất sắc!</h1>
           <div className="result-level">{result.level}</div>
           <p className="result-score">Điểm số: {result.score}/100</p>
+          {result.reason === 'finish_early' && (
+            <div className="result-note">Bạn đã nộp bài sớm. Điểm được tính theo các câu đã làm.</div>
+          )}
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
             <button
               className="review-btn"
