@@ -7,42 +7,20 @@ class AdaptiveService {
     }
 
     checkEarlyExit(history) {
-        if (!history || history.length < 5) return false;
-
-        const recent = history.slice(-5);
-        const allCorrect = recent.every(h => h.isCorrect);
-        const allWrong = recent.every(h => !h.isCorrect);
-
-        if (allCorrect || allWrong) return true;
-
-        if (history.length >= 7) {
-            const correctCount = history.filter(h => h.isCorrect).length;
-            const ratio = correctCount / history.length;
-            if (ratio >= 0.9 || ratio <= 0.2) return true;
-        }
-
+        // Disable early exit - always do 10 questions
         return false;
     }
 
     calculateResult(history) {
-        if (!history || history.length === 0) {
-            return { score: 0, level: "Beginner" };
-        }
-
         const totalDifficulty = history.reduce((sum, item) => sum + item.difficulty, 0);
         const earnedDifficulty = history.reduce((sum, item) => sum + (item.isCorrect ? item.difficulty : 0), 0);
-
-        const score = totalDifficulty > 0
-            ? Math.round((earnedDifficulty / totalDifficulty) * 100)
-            : 0;
-
-        const finalScore = Math.max(0, Math.min(100, score));
+        const score = Math.round((earnedDifficulty / totalDifficulty) * 100);
 
         let level = "Beginner";
-        if (finalScore >= 80) level = "Advanced";
-        else if (finalScore >= 55) level = "Intermediate";
+        if (score >= 80) level = "Advanced";
+        else if (score >= 55) level = "Intermediate";
 
-        return { score: finalScore, level };
+        return { score, level };
     }
 
 
@@ -68,9 +46,7 @@ class AdaptiveService {
                 });
             });
 
-            matchCondition._id = {
-                $nin: [...answeredObjectIds, ...correctQuestionIds]
-            };
+            matchCondition._id.$nin = [...answeredObjectIds, ...correctQuestionIds];
         }
 
         let results = await Question.aggregate([
@@ -91,23 +67,13 @@ class AdaptiveService {
                         }
                     });
                 });
-                fallbackCondition._id = {
-                    $nin: [...answeredObjectIds, ...correctQuestionIds]
-                };
+                fallbackCondition._id.$nin = [...answeredObjectIds, ...correctQuestionIds];
             }
 
             results = await Question.aggregate([
                 { $match: fallbackCondition },
                 { $sample: { size: 1 } }
             ]);
-        }
-
-        if (!results || results.length === 0) {
-            const anyQuestion = await Question.findOne();
-            if (!anyQuestion) {
-                throw new Error('Không có câu hỏi nào trong database');
-            }
-            return anyQuestion;
         }
 
         return results[0];

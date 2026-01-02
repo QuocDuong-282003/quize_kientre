@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Question = require('./models/Question');
 const connectDB = require('./config/db');
-require('dotenv').config({ path: '../.env' });
 
 const mockData = [
     // --- DIFFICULTY 1: WEB FUNDAMENTALS & BASIC DB (11 câu) ---

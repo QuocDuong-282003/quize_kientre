@@ -1,28 +1,37 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const quizRoutes = require('./routers/quizRoutes');
 const authRoutes = require('./routers/authRoutes');
 const adminRoutes = require('./routers/adminRoutes');
 
+dotenv.config();
+
 const app = express();
 connectDB();
 
-// CORS configuration from environment variables
-const corsOrigins = process.env.CORS_ORIGIN 
-    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-    : ['http://localhost:5173', 'http://localhost:5174'];
+// Allow multiple origins from env (comma-separated) plus local dev defaults
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/admin', adminRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 app.listen(PORT, () => console.log(` Server on port ${PORT}`));
