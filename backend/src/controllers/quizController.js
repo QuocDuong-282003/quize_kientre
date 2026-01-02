@@ -36,6 +36,8 @@ exports.getQuestionsByExam = async (req, res) => {
 //         res.status(500).json({ error: err.message });
 //     }
 // };
+const SESSION_TTL_MS = 1000 * 60 * 90; // 90 minutes per session window
+
 exports.startQuiz = async (req, res) => {
     try {
         const { userId, examId } = req.body;
@@ -105,7 +107,9 @@ exports.startQuiz = async (req, res) => {
         const session = new QuizSession({
             userId: userId || null,
             examId: examId || null,
-            currentQuestionId: firstQ._id
+            currentQuestionId: firstQ._id,
+            lastActivity: new Date(),
+            expiresAt: new Date(Date.now() + SESSION_TTL_MS)
         });
         await session.save();
         res.json({ sessionId: session._id, question: firstQ, examId: examId || null });
@@ -167,6 +171,14 @@ exports.submitAnswer = async (req, res) => {
             return res.status(400).json({ error: 'Session not found' });
         }
 
+        const now = new Date();
+        if (session.expiresAt && session.expiresAt < now) {
+            return res.status(400).json({
+                error: 'Session expired',
+                message: 'Phiên làm bài đã hết hạn, vui lòng bắt đầu lại.'
+            });
+        }
+
         if (session.isFinished) {
             return res.status(400).json({
                 error: 'Quiz already finished',
@@ -180,6 +192,8 @@ exports.submitAnswer = async (req, res) => {
             session.isFinished = true;
             session.finalScore = result.score;
             session.estimatedLevel = result.level;
+            session.lastActivity = now;
+            session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
             await session.save();
 
             const fullSession = await QuizSession.findById(session._id).populate('history.questionId');
@@ -200,7 +214,6 @@ exports.submitAnswer = async (req, res) => {
             return res.status(400).json({ error: 'Question not found' });
         }
 
-        // Kiểm tra đúng câu hỏi hiện tại
         if (session.currentQuestionId.toString() !== questionId) {
             console.warn(' Anti-cheat: Invalid question submission');
             console.warn('Expected:', session.currentQuestionId.toString());
@@ -211,28 +224,21 @@ exports.submitAnswer = async (req, res) => {
             });
         }
 
-        // Kiểm tra submit duplicate
         const alreadyAnswered = session.history.some(h => h.questionId.toString() === questionId);
+        // Nếu đã trả lời, cho phép làm lại: xóa bản ghi cũ rồi ghi lại
         if (alreadyAnswered) {
-            return res.status(400).json({
-                error: 'Question already answered',
-                message: 'Phát hiện gian lận: Câu hỏi đã được trả lời!'
-            });
+            session.history = session.history.filter(h => h.questionId.toString() !== questionId);
         }
 
-        //  Log tab switch
         if (reason === 'tab_switch') {
             console.warn(' User switched tab - sessionId:', sessionId);
             session.hasTabSwitch = true;
         }
 
-        // Kiểm tra đúng/sai
         const isCorrect = JSON.stringify(selectedAnswerIds.sort()) === JSON.stringify(question.correctAnswerIds.sort());
 
-        // Buộc kết thúc nếu bị phát hiện gian lận (chuyển tab / rời chuột 3 lần)
         const forceFinish = reason === 'tab_switch' || reason === 'mouse_leave_violation';
 
-        // LƯU LỊCH SỬ (Bao gồm cả đáp án người dùng chọn)
         session.history.push({
             questionId: question._id,
             selectedAnswerIds: selectedAnswerIds,
@@ -249,6 +255,8 @@ exports.submitAnswer = async (req, res) => {
             session.isFinished = true;
             session.finalScore = result.score;
             session.estimatedLevel = result.level;
+            session.lastActivity = now;
+            session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
             await session.save();
 
             const fullSession = await QuizSession.findById(session._id).populate('history.questionId');
@@ -269,7 +277,29 @@ exports.submitAnswer = async (req, res) => {
         const nextDiff = adaptiveService.calculateNextDifficulty(question.difficulty, isCorrect);
         const nextQ = await adaptiveService.getNextQuestion(nextDiff, session.history.map(h => h.questionId), session.userId, session.examId);
 
+        if (!nextQ) {
+            // Không còn câu phù hợp: chấm điểm luôn
+            const result = adaptiveService.calculateResult(session.history);
+            session.isFinished = true;
+            session.finalScore = result.score;
+            session.estimatedLevel = result.level;
+            session.lastActivity = now;
+            session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+            await session.save();
+
+            return res.json({
+                isFinished: true,
+                score: result.score,
+                level: result.level,
+                reviewData: session.history,
+                sessionId: session._id,
+                reason: 'no_more_questions'
+            });
+        }
+
         session.currentQuestionId = nextQ._id;
+        session.lastActivity = now;
+        session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
         await session.save();
 
         res.json({ isFinished: false, nextQuestion: nextQ, progress: session.history.length });
@@ -294,6 +324,44 @@ exports.getReview = async (req, res) => {
             history: session.history
         });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Quay lại câu trước (undo last answer)
+exports.goBack = async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const session = await QuizSession.findById(sessionId);
+
+        if (!session) return res.status(400).json({ error: 'Session not found' });
+        if (session.isFinished) return res.status(400).json({ error: 'Quiz đã kết thúc' });
+        if (!session.history || session.history.length === 0) {
+            return res.status(400).json({ error: 'Không còn câu để quay lại' });
+        }
+
+        const now = new Date();
+        if (session.expiresAt && session.expiresAt < now) {
+            return res.status(400).json({ error: 'Session expired' });
+        }
+
+        const lastEntry = session.history.pop();
+        const question = await Question.findById(lastEntry.questionId);
+
+        if (!question) return res.status(400).json({ error: 'Question not found' });
+
+        session.currentQuestionId = question._id;
+        session.lastActivity = now;
+        session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+        await session.save();
+
+        return res.json({
+            question,
+            selectedAnswerIds: lastEntry.selectedAnswerIds || [],
+            progress: session.history.length
+        });
+    } catch (err) {
+        console.error('GoBack Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 };

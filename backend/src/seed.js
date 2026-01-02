@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const Question = require('./models/Question');
 const Exam = require('./models/Exam');
@@ -11,12 +12,9 @@ const examSeeds = [
         description: 'Kiến thức nền tảng: HTML, CSS, JS, SQL cơ bản',
         category: 'Lập trình',
         tags: ['JS', 'HTML', 'CSS', 'SQL'],
-        coverImage: '💻',
-        examDate: new Date('2025-12-31'),
-        duration: 30,
-        passingScore: 55,
-        level: 'Beginner',
-        questionCount: 55
+
+        examDate: new Date('2026-1-1'),
+
     },
     {
         title: 'Hướng đối tượng (OOP)',
@@ -24,12 +22,10 @@ const examSeeds = [
         description: 'OOP, SOLID, Design Patterns, kế thừa, đa hình, đóng gói',
         category: 'Lập trình nâng cao',
         tags: ['OOP', 'Design Patterns', 'SOLID'],
-        coverImage: '🏗️',
-        examDate: new Date('2025-12-31'),
-        duration: 35,
-        passingScore: 60,
-        level: 'Intermediate',
-        questionCount: 11
+
+        examDate: new Date('2026-1-1'),
+
+
     },
     {
         title: 'MySQL & Cơ sở dữ liệu',
@@ -37,12 +33,9 @@ const examSeeds = [
         description: 'Thiết kế DB, MySQL queries, indexing, optimization, transactions',
         category: 'Cơ sở dữ liệu',
         tags: ['MySQL', 'SQL', 'Database', 'Performance'],
-        coverImage: '🗄️',
-        examDate: new Date('2025-12-31'),
-        duration: 30,
-        passingScore: 55,
-        level: 'Intermediate',
-        questionCount: 12
+
+        examDate: new Date('2026-1-1'),
+
     },
     {
         title: 'REST API & Backend',
@@ -50,12 +43,9 @@ const examSeeds = [
         description: 'Node.js, Express, REST design, auth, middleware, error handling',
         category: 'Backend',
         tags: ['REST API', 'Node.js', 'Express', 'Backend'],
-        coverImage: '⚙️',
-        examDate: new Date('2025-12-31'),
-        duration: 35,
-        passingScore: 60,
-        level: 'Intermediate',
-        questionCount: 12
+
+        examDate: new Date('2026-1-1'),
+
     }
 ];
 
@@ -225,10 +215,10 @@ const seed = async () => {
         ];
 
         await Question.insertMany(allQuestions);
-        console.log(`✅ Seeded ${allQuestions.length} questions across ${createdExams.length} exams successfully!`);
+        console.log(` Seeded ${allQuestions.length} questions across ${createdExams.length} exams successfully!`);
         process.exit();
     } catch (err) {
-        console.error('❌ Error seeding data:', err);
+        console.error(' Error seeding data:', err);
         process.exit(1);
     }
 };

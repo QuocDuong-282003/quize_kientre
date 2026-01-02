@@ -7,14 +7,34 @@ class AdaptiveService {
     }
 
     checkEarlyExit(history) {
-        // Disable early exit - always do 10 questions
+        // Early stop heuristic: need ≥6 câu, độ khó ổn định, và độ chính xác rõ ràng
+        if (!history || history.length < 6) return false;
+
+        const answered = history.length;
+        const correct = history.filter(h => h.isCorrect).length;
+        const accuracy = correct / answered;
+
+        // Độ khó 3 câu gần nhất không chênh quá 1 bậc ⇒ đã “ổn định”
+        const recent = history.slice(-3).map(h => h.difficulty);
+        const stableRecent = recent.length === 3 && (Math.max(...recent) - Math.min(...recent) <= 1);
+
+        // Nếu đã làm ≥8 câu và độ chính xác quá cao/thấp → có thể kết thúc
+        if (answered >= 8 && (accuracy >= 0.85 || accuracy <= 0.25)) return true;
+
+        // Hoặc làm ≥6 câu, độ khó ổn định và accuracy rõ rệt
+        if (answered >= 6 && stableRecent && (accuracy >= 0.8 || accuracy <= 0.3)) return true;
+
         return false;
     }
 
     calculateResult(history) {
         const totalDifficulty = history.reduce((sum, item) => sum + item.difficulty, 0);
+        if (totalDifficulty === 0) {
+            return { score: 0, level: "Beginner" };
+        }
+
         const earnedDifficulty = history.reduce((sum, item) => sum + (item.isCorrect ? item.difficulty : 0), 0);
-        const score = Math.round((earnedDifficulty / totalDifficulty) * 100);
+        const score = Math.max(0, Math.min(100, Math.round((earnedDifficulty / totalDifficulty) * 100)));
 
         let level = "Beginner";
         if (score >= 80) level = "Advanced";
