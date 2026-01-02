@@ -290,7 +290,21 @@
   }
 
   .timer-section {
-    display: none;
+    padding: 10px 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .timer-label {
+    font-size: 11px;
+    margin-bottom: 0;
+  }
+
+  .timer-value {
+    font-size: 24px;
   }
 
   .info-section {
@@ -330,6 +344,18 @@
   .quiz-sidebar {
     padding: 10px;
     gap: 10px;
+  }
+
+  .timer-section {
+    padding: 8px 12px;
+  }
+
+  .timer-label {
+    font-size: 10px;
+  }
+
+  .timer-value {
+    font-size: 20px;
   }
 
   .progress-section {
