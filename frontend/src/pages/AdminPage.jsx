@@ -4,20 +4,28 @@ import './AdminPage.css';
 
 export default function AdminPage() {
     const [questions, setQuestions] = useState([]);
+    const [exams, setExams] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [formData, setFormData] = useState({
+        title: '',
         content: '',
         options: [{ id: 1, text: '' }, { id: 2, text: '' }, { id: 3, text: '' }, { id: 4, text: '' }],
         correctAnswerIds: [],
-        difficulty: 1
+        difficulty: 1,
+        examId: '',
+        topic: ''
     });
     const [loading, setLoading] = useState(true);
+    const [examLoading, setExamLoading] = useState(true);
     const [error, setError] = useState('');
+    const [examError, setExamError] = useState('');
+    const [examForm, setExamForm] = useState({ title: '', code: '', description: '', category: '' });
 
     // Fetch all questions
     useEffect(() => {
         loadQuestions();
+        loadExams();
     }, []);
 
     const loadQuestions = async () => {
@@ -30,6 +38,19 @@ export default function AdminPage() {
             setError('Lỗi load câu hỏi: ' + (err.response?.data?.error || err.message));
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadExams = async () => {
+        try {
+            setExamLoading(true);
+            const res = await adminService.listExams();
+            setExams(res.data || []);
+            setExamError('');
+        } catch (err) {
+            setExamError('Lỗi tải khóa thi: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setExamLoading(false);
         }
     };
 
@@ -55,6 +76,14 @@ export default function AdminPage() {
         e.preventDefault();
 
         // Validation
+        if (!formData.title.trim()) {
+            setError('Vui lòng nhập tiêu đề câu hỏi');
+            return;
+        }
+        if (!formData.examId) {
+            setError('Vui lòng chọn khóa thi cho câu hỏi');
+            return;
+        }
         if (!formData.content.trim()) {
             setError('Vui lòng nhập nội dung câu hỏi');
             return;
@@ -80,10 +109,13 @@ export default function AdminPage() {
             }
 
             setFormData({
+                title: '',
                 content: '',
                 options: [{ id: 1, text: '' }, { id: 2, text: '' }, { id: 3, text: '' }, { id: 4, text: '' }],
                 correctAnswerIds: [],
-                difficulty: 1
+                difficulty: 1,
+                examId: '',
+                topic: ''
             });
             setShowForm(false);
             setEditingId(null);
@@ -97,10 +129,13 @@ export default function AdminPage() {
     const handleEdit = (question) => {
         setEditingId(question._id);
         setFormData({
+            title: question.title || '',
             content: question.content,
             options: question.options,
             correctAnswerIds: [...question.correctAnswerIds],
-            difficulty: question.difficulty
+            difficulty: question.difficulty,
+            examId: question.examId?._id || question.examId || '',
+            topic: question.topic || ''
         });
         setShowForm(true);
     };
@@ -124,11 +159,31 @@ export default function AdminPage() {
         setShowForm(false);
         setEditingId(null);
         setFormData({
+            title: '',
             content: '',
             options: [{ id: 1, text: '' }, { id: 2, text: '' }, { id: 3, text: '' }, { id: 4, text: '' }],
             correctAnswerIds: [],
-            difficulty: 1
+            difficulty: 1,
+            examId: '',
+            topic: ''
         });
+    };
+
+    const handleCreateExam = async () => {
+        if (!examForm.title || !examForm.code) {
+            setExamError('Nhập tối thiểu tiêu đề và mã khóa thi');
+            return;
+        }
+        try {
+            setExamLoading(true);
+            await adminService.createExam(examForm);
+            setExamForm({ title: '', code: '', description: '', category: '' });
+            loadExams();
+        } catch (err) {
+            setExamError('Lỗi tạo khóa thi: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setExamLoading(false);
+        }
     };
 
     return (
@@ -150,6 +205,37 @@ export default function AdminPage() {
                 <div className="question-form-container">
                     <h2>{editingId ? ' Sửa Câu Hỏi' : ' Thêm Câu Hỏi Mới'}</h2>
                     <form onSubmit={handleSubmit}>
+                        {/* Question title */}
+                        <div className="form-group">
+                            <label> Tiêu đề *</label>
+                            <input
+                                type="text"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="Ví dụ: C cơ bản - Con trỏ"
+                            />
+                        </div>
+
+                        {/* Exam selection */}
+                        <div className="form-group">
+                            <label> Khóa thi *</label>
+                            <div className="exam-row">
+                                <select
+                                    value={formData.examId}
+                                    onChange={(e) => setFormData({ ...formData, examId: e.target.value })}
+                                >
+                                    <option value="">-- Chọn khóa thi --</option>
+                                    {exams.map(ex => (
+                                        <option key={ex._id} value={ex._id}>{ex.title} ({ex.code})</option>
+                                    ))}
+                                </select>
+                                <button type="button" className="pill-btn" onClick={loadExams} disabled={examLoading}>
+                                    Làm mới
+                                </button>
+                            </div>
+                            {examError && <div className="inline-error">{examError}</div>}
+                        </div>
+
                         {/* Content */}
                         <div className="form-group">
                             <label> Nội Dung Câu Hỏi *</label>
@@ -158,6 +244,17 @@ export default function AdminPage() {
                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                 placeholder="Nhập câu hỏi..."
                                 rows="3"
+                            />
+                        </div>
+
+                        {/* Topic */}
+                        <div className="form-group">
+                            <label> Chủ đề / Môn *</label>
+                            <input
+                                type="text"
+                                value={formData.topic}
+                                onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                                placeholder="Lập trình C, Node.js, Phỏng vấn, Mạng..."
                             />
                         </div>
 
@@ -246,6 +343,11 @@ export default function AdminPage() {
                                 <div className="admin-difficulty-badge" data-level={question.difficulty}>
                                     Level {question.difficulty}
                                 </div>
+                                <div className="admin-question-meta">
+                                    <span className="pill-soft">{question.examId?.title || 'Chưa gán khóa thi'}</span>
+                                    {question.topic && <span className="pill-soft dark">{question.topic}</span>}
+                                </div>
+                                {question.title && <p className="admin-question-title">{question.title}</p>}
                                 <p className="admin-question-content">{question.content}</p>
 
                                 <div className="admin-options-display">
@@ -282,6 +384,40 @@ export default function AdminPage() {
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Quick exam creator */}
+            <div className="exam-form-container">
+                <h2>Tạo khóa thi nhanh</h2>
+                <div className="exam-form-grid">
+                    <input
+                        type="text"
+                        placeholder="Tiêu đề (ví dụ: Lập trình C)"
+                        value={examForm.title}
+                        onChange={(e) => setExamForm({ ...examForm, title: e.target.value })}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Mã (ví dụ: C-BASIC)"
+                        value={examForm.code}
+                        onChange={(e) => setExamForm({ ...examForm, code: e.target.value })}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Danh mục (tùy chọn)"
+                        value={examForm.category}
+                        onChange={(e) => setExamForm({ ...examForm, category: e.target.value })}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Mô tả ngắn"
+                        value={examForm.description}
+                        onChange={(e) => setExamForm({ ...examForm, description: e.target.value })}
+                    />
+                    <button type="button" className="btn-submit" onClick={handleCreateExam} disabled={examLoading}>
+                        {examLoading ? 'Đang lưu...' : 'Tạo khóa thi'}
+                    </button>
+                </div>
             </div>
         </div>
     );

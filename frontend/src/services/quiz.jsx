@@ -12,8 +12,8 @@ const API = axios.create({
 
 // Quiz service functions
 export const quizService = {
-    startQuiz: async (userId) => {
-        const response = await API.post('/api/quiz/start', { userId });
+    startQuiz: async (userId, examId) => {
+        const response = await API.post('/api/quiz/start', { userId, examId });
         return response.data;
     },
 
@@ -30,6 +30,11 @@ export const quizService = {
 
     getReview: async (sessionId) => {
         const response = await API.get(`/api/quiz/review/${sessionId}`);
+        return response.data;
+    },
+
+    getExams: async () => {
+        const response = await API.get('/api/admin/exams');
         return response.data;
     }
 };

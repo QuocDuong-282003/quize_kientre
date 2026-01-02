@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import quizService from '../services/quiz';
 import LoginModal from '../components/login/LoginModal';
@@ -8,9 +8,26 @@ import './StartPage.css';
 const StartPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [exams, setExams] = useState([]);
+  const [examsLoading, setExamsLoading] = useState(true);
+  const [examError, setExamError] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [user, setUser] = useState(null);
   const [guestWarning, setGuestWarning] = useState(false);
+
+  const fetchExams = useCallback(async () => {
+    try {
+      setExamsLoading(true);
+      const data = await quizService.getExams();
+      setExams(data || []);
+      setExamError('');
+    } catch (err) {
+      console.error(err);
+      setExamError('Không tải được danh sách khóa thi');
+    } finally {
+      setExamsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
@@ -19,7 +36,11 @@ const StartPage = () => {
     }
   }, []);
 
-  const handleStart = async () => {
+  useEffect(() => {
+    fetchExams();
+  }, [fetchExams]);
+
+  const handleStartExam = async (exam) => {
     if (!user) {
       setGuestWarning(true);
       setTimeout(() => setGuestWarning(false), 3000);
@@ -27,18 +48,19 @@ const StartPage = () => {
 
     setLoading(true);
     try {
-      const data = await quizService.startQuiz(user?.userId || null);
+      const data = await quizService.startQuiz(user?.userId || null, exam._id);
       navigate('/quiz', {
         state: {
           sessionId: data.sessionId,
           question: data.question,
-          userId: user?.userId || null
+          userId: user?.userId || null,
+          examId: exam._id,
+          examTitle: exam.title
         }
       });
     } catch (error) {
       alert('Không thể kết nối đến server. Vui lòng thử lại!');
       console.error(error);
-    } finally {
       setLoading(false);
     }
   };
@@ -85,26 +107,65 @@ const StartPage = () => {
         </div>
       )}
 
-      <div className="main-content">
-        <div className="start-screen">
-          <div className="start-icon">🧠</div>
-          <h1 className="start-title">Kiểm tra ứng viên</h1>
-          <p className="start-subtitle">
-            Hệ thống sẽ tự động điều chỉnh độ khó của câu hỏi<br />
-            dựa trên khả năng của bạn để đánh giá chính xác nhất
-          </p>
-          {user && (
-            <p className="saved-history-notice">
-              Lịch sử làm bài sẽ được lưu lại
-            </p>
+      <div className="main-content start-page-layout">
+        <div className="exam-grid-shell">
+          {examsLoading ? (
+            <div className="exam-empty">Đang tải danh sách...</div>
+          ) : exams.length === 0 ? (
+            <div className="exam-empty-panel-full">
+              <div className="exam-empty-content">
+                <h2>Danh sách khóa thi</h2>
+                <p>Không có khóa thi. Vui lòng tải lại hoặc vào trang Admin để thêm.</p>
+              </div>
+              <div className="exam-empty-actions-center">
+                <button type="button" className="exam-btn-reload" onClick={fetchExams} disabled={examsLoading}>
+                  {examsLoading ? 'Đang tải...' : 'Tải lại' }
+                </button>
+              </div>
+              {examError && <p className="exam-error">{examError}</p>}
+            </div>
+          ) : (
+            <div className="exam-grid">
+              {exams.map((exam) => (
+                <div key={exam._id} className="exam-card" onClick={() => handleStartExam(exam)} style={{ cursor: 'pointer' }}>
+                  <div className="exam-cover" aria-hidden>
+                    <div className="exam-icon">{exam.coverImage || '📝'}</div>
+                    <div className="exam-title-large">{exam.title}</div>
+                    <div className="exam-year">{new Date(exam.examDate).getFullYear()}</div>
+                  </div>
+                  <div className="exam-body">
+                    <p className="exam-description">{exam.description || 'Bộ đề đánh giá nhanh với câu hỏi phân tầng độ khó.'}</p>
+                    
+                    <div className="exam-stats">
+                      <div className="stat-item">
+                        <span className="stat-icon">❓</span>
+                        <span className="stat-value">{exam.questionCount || 10}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-icon">⏱️</span>
+                        <span className="stat-value">{exam.duration || 30} phút</span>
+                      </div>
+                    </div>
+
+                    <div className="exam-meta-info">
+                      <span className="level-badge">{exam.level || 'Intermediate'}</span>
+                      <span className="passing-badge">Đạt: {exam.passingScore || 55}%</span>
+                    </div>
+
+                    <div className="exam-tags">
+                      {exam.tags && exam.tags.slice(0, 3).map((tag, idx) => (
+                        <span key={idx} className="tag">{tag}</span>
+                      ))}
+                    </div>
+
+                    <button className="exam-btn-start" type="button" disabled={loading}>
+                      {loading ? 'Đang tải...' : 'Vào ôn thi'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
-          <button
-            className="start-btn"
-            onClick={handleStart}
-            disabled={loading}
-          >
-            {loading ? ' Đang tải...' : ' Bắt đầu ngay'}
-          </button>
         </div>
       </div>
 

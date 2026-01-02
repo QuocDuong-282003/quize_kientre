@@ -22,7 +22,11 @@ export const adminService = {
     updateQuestion: async (id, questionData) => API.put(`/api/admin/questions/${id}`, questionData),
 
     // Delete question
-    deleteQuestion: async (id) => API.delete(`/api/admin/questions/${id}`)
+    deleteQuestion: async (id) => API.delete(`/api/admin/questions/${id}`),
+
+    // Exams
+    listExams: async () => API.get('/api/admin/exams'),
+    createExam: async (examData) => API.post('/api/admin/exams', examData)
 };
 
 export default adminService;

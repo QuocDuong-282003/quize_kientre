@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import quizService from '../services/quiz';
 import '../App.css';
 import './QuizPage.css';
 
@@ -31,6 +32,8 @@ const ResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
+  const [loadingReview, setLoadingReview] = useState(false);
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
     if (location.state?.result) {
@@ -45,6 +48,27 @@ const ResultPage = () => {
       }
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const fetchReview = async () => {
+      if (!result || (result.reviewData && result.reviewData.length) || !result.sessionId) return;
+      try {
+        setLoadingReview(true);
+        setReviewError('');
+        const data = await quizService.getReview(result.sessionId);
+        const merged = { ...result, reviewData: data.history, score: result.score ?? data.score, level: result.level ?? data.level };
+        setResult(merged);
+        localStorage.setItem('lastResult', JSON.stringify(merged));
+      } catch (err) {
+        console.error('Fetch review failed', err);
+        setReviewError('Không tải được chi tiết bài làm.');
+      } finally {
+        setLoadingReview(false);
+      }
+    };
+
+    fetchReview();
+  }, [result]);
 
   if (!result) {
     return (
@@ -76,13 +100,15 @@ const ResultPage = () => {
           <h1 className="result-title">Hoàn thành xuất sắc!</h1>
           <div className="result-level">{result.level}</div>
           <p className="result-score">Điểm số: {result.score}/100</p>
-          {result.reason === 'finish_early' && (
-            <div className="result-note">Bạn đã nộp bài sớm. Điểm được tính theo các câu đã làm.</div>
+          {(result.reason === 'finish_early' || result.reason === 'tab_switch' || result.reason === 'mouse_leave_violation') && (
+            <div className="result-note">Điểm được tính theo các câu đã làm trước khi bài bị nộp.</div>
           )}
+          {reviewError && <div className="result-note" style={{ color: '#b00020' }}>{reviewError}</div>}
+          {loadingReview && <div className="result-note">Đang tải chi tiết bài làm...</div>}
           <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
             <button
               className="review-btn"
-              onClick={() => navigate('/review', { state: { reviewData: result.reviewData || result.history || [] } })}
+              onClick={() => navigate('/review', { state: { reviewData: result.reviewData || result.history || [], sessionId: result.sessionId } })}
               style={{ background: '#17a2b8', color: '#fff', padding: '16px 40px', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}
             >
               Xem chi tiết đáp án
