@@ -217,29 +217,12 @@
   min-height: 48px;
 }
 
-.question-dot.pending {
-  background: #edf2f7;
-  color: #a0aec0;
-  border: 2px solid #e2e8f0;
-}
-
 .question-dot.current {
   background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
   color: white;
   box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
-  transform: scale(1.1);
-  animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1.1);
-  }
-
-  50% {
-    transform: scale(1.15);
-  }
-}
 
 .question-dot.completed {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);

@@ -173,35 +173,6 @@ const QuizPage = () => {
     }
   };
 
-  const handleFinishEarly = async () => {
-    if (isSubmitting) return;
-
-    const confirmFinish = window.confirm('Bạn chắc chắn muốn nộp bài sớm?');
-    if (!confirmFinish) return;
-
-    setIsSubmitting(true);
-    try {
-      const data = await quizService.submitAnswer(
-        sessionId,
-        question._id,
-        selectedIds,
-        'user_finish_early',
-        true
-      );
-
-      navigate('/result', {
-        state: {
-          result: data,
-          warning: 'Bạn đã nộp bài sớm.'
-        }
-      });
-    } catch (error) {
-      console.error('Finish early failed:', error);
-      alert('Nộp bài sớm thất bại, vui lòng thử lại.');
-      setIsSubmitting(false);
-    }
-  };
-
   const handleFinishFinal = async () => {
     if (!quizFinished || !pendingResult) return;
     const confirmFinish = window.confirm('Bạn đã hoàn thành 10 câu. Nộp bài ngay?');
@@ -247,7 +218,6 @@ const QuizPage = () => {
           progress={progress}
           timer={timer}
           onSubmit={handleNext}
-          onFinishEarly={handleFinishEarly}
           onFinishFinal={handleFinishFinal}
           quizFinished={quizFinished}
           loading={loading || isSubmitting}

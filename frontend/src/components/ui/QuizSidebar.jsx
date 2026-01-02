@@ -1,7 +1,7 @@
 import React from 'react';
 import './QuizSidebar.css';
 
-const QuizSidebar = ({ progress, onSubmit, onFinishEarly, onFinishFinal, quizFinished, timer, loading }) => {
+const QuizSidebar = ({ progress, onSubmit, onFinishFinal, quizFinished, timer, loading }) => {
     return (
         <div className="quiz-sidebar">
             <div className="timer-section">
@@ -18,23 +18,14 @@ const QuizSidebar = ({ progress, onSubmit, onFinishEarly, onFinishFinal, quizFin
                     {quizFinished ? 'Đã hoàn thành' : (loading ? ' Đang xử lý...' : '✓ Câu tiếp theo')}
                 </button>
 
-                {quizFinished ? (
+                {quizFinished && (
                     <button
                         onClick={onFinishFinal}
                         disabled={loading}
                         className="finish-btn final"
                         title="Nộp bài sau khi đã hoàn thành 10 câu"
                     >
-                        ✓ Nộp bài
-                    </button>
-                ) : (
-                    <button
-                        onClick={onFinishEarly}
-                        disabled={loading}
-                        className="finish-btn"
-                        title="Nộp bài ngay với các câu đã làm"
-                    >
-                        ⚑ Nộp bài sớm
+                        Nộp bài
                     </button>
                 )}
             </div>
