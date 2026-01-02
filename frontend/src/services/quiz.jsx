@@ -17,12 +17,13 @@ export const quizService = {
         return response.data;
     },
 
-    submitAnswer: async (sessionId, questionId, selectedAnswerIds, reason = null) => {
+    submitAnswer: async (sessionId, questionId, selectedAnswerIds, reason = null, finishEarly = false) => {
         const response = await API.post('/api/quiz/submit', {
             sessionId,
             questionId,
             selectedAnswerIds,
-            reason
+            reason,
+            finishEarly
         });
         return response.data;
     },
