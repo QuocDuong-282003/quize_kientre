@@ -36,7 +36,7 @@ exports.getQuestionsByExam = async (req, res) => {
 //         res.status(500).json({ error: err.message });
 //     }
 // };
-const SESSION_TTL_MS = 1000 * 60 * 90; // 90 minutes per session window
+const SESSION_TTL_MS = 1000 * 60 * 90;
 
 exports.startQuiz = async (req, res) => {
     try {
@@ -45,17 +45,14 @@ exports.startQuiz = async (req, res) => {
 
         const examMatch = examId ? { examId: new ObjectId(examId) } : {};
 
-        // Nếu user không login, random câu hỏi bình thường
         let firstQ;
         if (!userId) {
             firstQ = await Question.findOne({ difficulty: 3, ...examMatch });
         } else {
-            // Nếu user đã login, lấy danh sách câu hỏi đã làm
             const userSessions = await QuizSession.find(examId ? { userId, examId } : { userId });
             const answeredQuestionIds = [];
             const wrongQuestionIds = [];
 
-            // Tìm các câu đã làm đúng và sai
             userSessions.forEach(session => {
                 session.history.forEach(item => {
                     if (item.isCorrect) {
@@ -66,7 +63,6 @@ exports.startQuiz = async (req, res) => {
                 });
             });
 
-            // Random câu chưa làm hoặc làm sai (exclude câu làm đúng)
             firstQ = await Question.aggregate([
                 {
                     $match: {
@@ -83,7 +79,6 @@ exports.startQuiz = async (req, res) => {
                 { $sample: { size: 1 } }
             ]);
 
-            // Nếu tất cả câu level 3 đều làm rồi, random từ câu chưa làm
             if (!firstQ || firstQ.length === 0) {
                 firstQ = await Question.aggregate([
                     {
@@ -225,7 +220,6 @@ exports.submitAnswer = async (req, res) => {
         }
 
         const alreadyAnswered = session.history.some(h => h.questionId.toString() === questionId);
-        // Nếu đã trả lời, cho phép làm lại: xóa bản ghi cũ rồi ghi lại
         if (alreadyAnswered) {
             session.history = session.history.filter(h => h.questionId.toString() !== questionId);
         }
@@ -345,20 +339,77 @@ exports.goBack = async (req, res) => {
             return res.status(400).json({ error: 'Session expired' });
         }
 
-        const lastEntry = session.history.pop();
+        //  1 goBack / 3 giây 
+        if (session.lastGoBackTime) {
+            const timeSinceLastGoBack = now - session.lastGoBackTime;
+            if (timeSinceLastGoBack < 3000) {
+                const waitTime = Math.ceil((3000 - timeSinceLastGoBack) / 1000);
+                return res.status(429).json({
+                    error: 'Quay lại quá nhanh',
+                    message: `Vui lòng chờ ${waitTime} giây trước khi quay lại tiếp`
+                });
+            }
+        }
+
+        const lastEntry = session.history[session.history.length - 1];
+        const questionIdStr = lastEntry.questionId.toString();
+
+        // cho quay lại 1 lần per question 
+        if (!session.goBackLog) {
+            session.goBackLog = [];
+        }
+
+        const goBackCountForThisQuestion = session.goBackLog.filter(
+            log => log.questionId.toString() === questionIdStr
+        ).length;
+
+        if (goBackCountForThisQuestion >= 1) {
+            return res.status(400).json({
+                error: 'Không được quay lại câu này nữa',
+                message: 'Bạn đã quay lại câu này rồi. Chỉ được 1 lần per câu!'
+            });
+        }
+
+        //  chi tiết cho audit 
+        const goBackLogEntry = {
+            timestamp: now,
+            questionId: lastEntry.questionId,
+            goBackNumber: goBackCountForThisQuestion + 1,
+            userId: session.userId,
+            sessionId: session._id,
+            historyLength: session.history.length,
+            previousAnswer: lastEntry.selectedAnswerIds,
+            difficulty: lastEntry.difficulty
+        };
+        session.goBackLog.push(goBackLogEntry);
+
+        console.log(` GOBACK LOG:
+  ✓ User: ${session.userId}
+  ✓ Session: ${session._id}
+  ✓ Question: ${questionIdStr}
+  ✓ GoBack Attempt: #${goBackCountForThisQuestion + 1}
+  ✓ Timestamp: ${now.toISOString()}
+  ✓ Previous Answer: [${lastEntry.selectedAnswerIds.join(',')}]
+  ✓ Difficulty: ${lastEntry.difficulty}
+  ✓ History Length Before: ${session.history.length}`);
+
+        //  Thực hiện goBack 
+        session.history.pop();
         const question = await Question.findById(lastEntry.questionId);
 
         if (!question) return res.status(400).json({ error: 'Question not found' });
 
         session.currentQuestionId = question._id;
         session.lastActivity = now;
+        session.lastGoBackTime = now;
         session.expiresAt = new Date(Date.now() + SESSION_TTL_MS);
         await session.save();
 
         return res.json({
             question,
             selectedAnswerIds: lastEntry.selectedAnswerIds || [],
-            progress: session.history.length
+            progress: session.history.length,
+            message: ' Chỉ được quay lại 1 lần per câu'
         });
     } catch (err) {
         console.error('GoBack Error:', err.message);

@@ -19,17 +19,15 @@ const QuizSessionSchema = new mongoose.Schema({
     estimatedLevel: { type: String, default: "" },
     startTime: { type: Date, default: Date.now },
 
-    // Anti-abuse / housekeeping
     lastActivity: { type: Date, default: Date.now },
-    expiresAt: { type: Date, default: () => new Date(Date.now() + 1000 * 60 * 60 * 6) }, // 6h TTL
+    expiresAt: { type: Date, default: () => new Date(Date.now() + 1000 * 60 * 60 * 6) },
 
     hasTabSwitch: { type: Boolean, default: false },
     suspiciousActivity: { type: Boolean, default: false },
-    ipAddress: { type: String }, // Optional: track IP
-    userAgent: { type: String }  // Optional: track browser
+    ipAddress: { type: String },
+    userAgent: { type: String }
 }, { timestamps: true });
 
-// TTL cleanup and quick lookups
 QuizSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 QuizSessionSchema.index({ userId: 1, examId: 1, isFinished: 1 });
 QuizSessionSchema.index({ currentQuestionId: 1 });

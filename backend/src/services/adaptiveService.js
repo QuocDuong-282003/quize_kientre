@@ -7,21 +7,17 @@ class AdaptiveService {
     }
 
     checkEarlyExit(history) {
-        // Early stop heuristic: need ≥6 câu, độ khó ổn định, và độ chính xác rõ ràng
         if (!history || history.length < 6) return false;
 
         const answered = history.length;
         const correct = history.filter(h => h.isCorrect).length;
         const accuracy = correct / answered;
 
-        // Độ khó 3 câu gần nhất không chênh quá 1 bậc ⇒ đã “ổn định”
         const recent = history.slice(-3).map(h => h.difficulty);
         const stableRecent = recent.length === 3 && (Math.max(...recent) - Math.min(...recent) <= 1);
 
-        // Nếu đã làm ≥8 câu và độ chính xác quá cao/thấp → có thể kết thúc
         if (answered >= 8 && (accuracy >= 0.85 || accuracy <= 0.25)) return true;
 
-        // Hoặc làm ≥6 câu, độ khó ổn định và accuracy rõ rệt
         if (answered >= 6 && stableRecent && (accuracy >= 0.8 || accuracy <= 0.3)) return true;
 
         return false;

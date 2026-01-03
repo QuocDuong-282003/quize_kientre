@@ -10,7 +10,6 @@ const QuestionSchema = new mongoose.Schema({
     topic: { type: String, default: '' }
 });
 
-// Speed up lookups for adaptive sampling by exam/difficulty
 QuestionSchema.index({ examId: 1, difficulty: 1 });
 QuestionSchema.index({ difficulty: 1 });
 
