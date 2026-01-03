@@ -143,10 +143,10 @@ const StartPage = () => {
                         <span className="stat-icon">?</span>
                         <span className="stat-value">{exam.questionCount || 10}</span>
                       </div>
-                      <div className="stat-item">
+                      {/* <div className="stat-item">
                         <span className="stat-icon">⏱</span>
                         <span className="stat-value">{exam.duration || 30} phút</span>
-                      </div>
+                      </div> */}
                     </div>
                     <div className="exam-tags">
                       {exam.tags && exam.tags.slice(0, 3).map((tag, idx) => (
